@@ -21,6 +21,7 @@ public class MainMenu : BaseBehaviour {
 	public Toggle m_tgZone;
 	
 	private string _zoneCreateName = "zone_";
+	private string _mapCreateName = "map_";
 
 	private List<string> _mapNames;
 	private List<string> _zoneNames;
@@ -93,7 +94,19 @@ public class MainMenu : BaseBehaviour {
 				_zoneNames.Insert (0, fileName);
 			}
 		} else {
+			if (m_inputField.text != "__create__") {
+				_editMapMng.OpenMap (m_inputField.text);
+			} else {
+				string fileName = _mapCreateName + (_mapNames.Count + 1);
+				_editMapMng.CreateMap (fileName);
+				m_inputField.text = fileName;
+				_addDropDown (fileName, true);
 
+				m_dropDown.value = 0;
+				m_dropDown.RefreshShownValue ();
+
+				_mapNames.Insert (0, fileName);
+			}
 		}
 	}
 
@@ -103,14 +116,14 @@ public class MainMenu : BaseBehaviour {
 		if (m_tgZone.isOn) {
 			_editMapMng.SaveZone (m_inputField.text);
 		} else {
-
+			_editMapMng.SaveMap (m_inputField.text);
 		}
 	}
 
 	public void OnClickAdd()
 	{
 		Debug.Log ("OnClickAdd");
-
+		_editMapMng.AddZone ();
 	}
 
 	public void OnDropChange()

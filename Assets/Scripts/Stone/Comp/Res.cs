@@ -17,6 +17,21 @@ namespace Stone.Comp
 		{
 			return ZonePath + fileName + ConfExt;
 		}
+
+		static public string GetMapPath(string name)
+		{
+			return MapPath + name + "/";
+		}
+
+		static public string GetMapConfPath(string path)
+		{
+			return path + "map" + ConfExt;
+		}
+
+		static public string GetMapZonePath(string path, string name)
+		{
+			return path + name + ConfExt;
+		}
 	}
 }
 

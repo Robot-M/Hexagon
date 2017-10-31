@@ -34,11 +34,21 @@ namespace Stone.Hex
 	        return new Hex(a.q + b.q, a.r + b.r, a.s + b.s);
 	    }
 
+		static public Hex operator+(Hex a, Hex b)
+		{
+			return new Hex(a.q + b.q, a.r + b.r, a.s + b.s);
+		}
+
 
 	    static public Hex Subtract(Hex a, Hex b)
 	    {
 	        return new Hex(a.q - b.q, a.r - b.r, a.s - b.s);
 	    }
+
+		static public Hex operator-(Hex a, Hex b)
+		{
+			return new Hex(a.q - b.q, a.r - b.r, a.s - b.s);
+		}
 
 
 	    static public Hex Scale(Hex a, int k)
@@ -46,6 +56,10 @@ namespace Stone.Hex
 	        return new Hex(a.q * k, a.r * k, a.s * k);
 	    }
 
+		static public Hex operator*(Hex a, int k)
+		{
+			return new Hex(a.q * k, a.r * k, a.s * k);
+		}
 
 	    static public Hex RotateLeft(Hex a)
 	    {
@@ -73,7 +87,12 @@ namespace Stone.Hex
 
 	    static public List<Hex> diagonals = new List<Hex>{new Hex(2, -1, -1), new Hex(1, -2, 1), new Hex(-1, -1, 2), new Hex(-2, 1, 1), new Hex(-1, 2, -1), new Hex(1, 1, -2)};
 
-	    static public Hex DiagonalNeighbor(Hex hex, int direction)
+		static public Hex Diagonal(int direction)
+		{
+			return Hex.diagonals[direction];
+		}
+	    
+		static public Hex DiagonalNeighbor(Hex hex, int direction)
 	    {
 	        return Hex.Add(hex, Hex.diagonals[direction]);
 	    }

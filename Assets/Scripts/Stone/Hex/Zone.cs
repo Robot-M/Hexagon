@@ -22,6 +22,7 @@ namespace Stone.Hex
 			} 
 		}
 
+		// 中心点真实hex
 		public Hex centerHex;
 
 		public int radius;
@@ -68,15 +69,20 @@ namespace Stone.Hex
 				string dataStr = XmlUtil.LoadXml (path);
 				zone = XmlUtil.DeserializeObject (dataStr, typeof(Zone)) as Zone;
 			} else {
-				Debug.Log ("OpenZone can't find");
+				Debug.Log ("LoadZoneFromXml can't find");
 			}
 			return zone;
 		}
 
 		public static void SaveZoneToXml(string path, Zone zone)
 		{
-			string dataStr = XmlUtil.SerializeObject (zone, typeof(Zone));
-			XmlUtil.CreateXml (path, dataStr);
+			if (zone.isDirty) {
+				zone.isDirty = false;
+				string dataStr = XmlUtil.SerializeObject (zone, typeof(Zone));
+				XmlUtil.CreateXml (path, dataStr);
+			} else {
+				Debug.Log ("SaveZoneToXml zone has nothing to save");
+			}
 		}
 	}
 }

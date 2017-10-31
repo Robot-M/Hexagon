@@ -56,18 +56,22 @@ public class EditMapMng : BaseBehaviour {
 		return _pfNameList [index];
 	}
 
-	//===================== zone =====================
-
-	private void _openZone()
+	private void _clearGameObject()
 	{
 		for (int i = 0; i < m_transform.childCount; i++) {  
 			Destroy (m_transform.GetChild (i).gameObject);  
 		}
+	}
 
-		for (int i = 0; i < _zone.count; i++) {
-			Cell cell = _zone.cells [i];
+	//===================== zone =====================
 
-			Point pt = Layout.HexToPixel (_layout, cell.hex);
+	private void _openZone(Zone zone)
+	{
+		
+		for (int i = 0; i < zone.count; i++) {
+			Cell cell = zone.cells [i];
+
+			Point pt = Layout.HexToPixel (_layout, cell.hex + zone.centerHex);
 
 			GameObject go = Instantiate (m_cellPf);
 			go.transform.parent = m_transform;
@@ -87,7 +91,8 @@ public class EditMapMng : BaseBehaviour {
 		Debug.Log ("CreateZone");
 
 		_zone = _getRandomZone (true);
-		_openZone ();
+		_clearGameObject ();
+		_openZone (_zone);
 	}
 	
 	public void OpenZone(string fileName)
@@ -97,7 +102,8 @@ public class EditMapMng : BaseBehaviour {
 
 		_zone = Zone.LoadZoneFromXml (path);
 		if (_zone != null) {
-			_openZone ();
+			_clearGameObject ();
+			_openZone (_zone);
 		} else {
 			Debug.Log ("OpenZone fail");
 		}
@@ -121,19 +127,23 @@ public class EditMapMng : BaseBehaviour {
 	private void _openMap()
 	{
 		if (!_map.IsEmpty ()) {
-
+			List<Zone> zones = _map.GetShowZones ();
+			foreach (Zone zone in zones) {
+				_openZone (zone);
+			}
 		}
 	}
 
 	public void CreateMap(string fileName)
 	{
-		_map = new Map();
+		_map = new Map(m_zoneRadius);
 		_openMap ();
 	}
 
 	public void OpenMap(string fileName)
 	{
-
+		_map = Map.LoadMapFromXml (Res.GetMapPath (fileName));
+		_openMap ();
 	}
 
 	private Zone _getRandomZone(bool isCreate=false)
@@ -168,6 +178,7 @@ public class EditMapMng : BaseBehaviour {
 		if (_map.GetNextHex (out hex)) {
 			Zone zone = _getRandomZone ();
 			_map.AddZone (hex, zone);
+			_openZone (zone);
 		}
 	}
 
@@ -175,12 +186,9 @@ public class EditMapMng : BaseBehaviour {
 	{
 		Debug.Log ("SaveMap fileName " + fileName);
 
-		if (_map != null) { 
-			string dataStr = XmlUtil.SerializeObject (_map, typeof(Map));
-			XmlUtil.CreateXml (fileName, dataStr);
-		} else {
-			Debug.Log ("SaveMap fail");
-		}
+		string path = Res.GetMapPath (fileName);
+
+		Map.SaveMapToXml (fileName, _map);
 	}
 
 	protected override void OnUpdate()  
