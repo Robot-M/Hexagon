@@ -30,7 +30,7 @@ public class MainMenu : BaseBehaviour {
 
 	protected override void OnInitFirst()  
 	{  
-		_mapNames = FileUtilEx.GetForlds(Res.MapPath);
+		_mapNames = FileUtilEx.GetForldNames(Res.MapPath);
 		_zoneNames = FileUtilEx.GetFileNames(Res.ZonePath, Res.ConfExt);
 	}  
 
@@ -136,5 +136,6 @@ public class MainMenu : BaseBehaviour {
 		Debug.Log ("OnToggleZone " + b.ToString());
 		m_addButton.interactable = !m_tgZone.isOn;
 		_refreshDropDown ();
+		_editMapMng.ClearGameObject ();
 	}
 }

@@ -12,43 +12,51 @@ namespace Stone.Hex
 
 		public Hex curHex;
 
-		public Dictionary<string, string> zoneNames;
+		public SerializableDictionary<string, string> zoneNameDict;
 
 		[XmlIgnore]
 		public string path;
 
-		private Dictionary<string, Zone> _zones;
+		private Dictionary<string, Zone> _zoneDict;
+
+		[XmlIgnore]
+		public Dictionary<string, Zone> zoneDict { 
+			get { return _zoneDict; } 
+		}
+
 		private List<Hex> _spiralHexs;
 
 		public Map()
 		{
 			this.radius = 3;
-			this.zoneNames = new Dictionary<string, string> ();
-			this._zones = new Dictionary<string, Zone> ();
+			this.zoneNameDict = new SerializableDictionary<string, string> ();
+			this._zoneDict = new Dictionary<string, Zone> ();
 		}
 
 		public Map(int radius)
 		{
 			this.radius = radius;
-			this.zoneNames = new Dictionary<string, string> ();
-			this._zones = new Dictionary<string, Zone> ();
+			this.zoneNameDict = new SerializableDictionary<string, string> ();
+			this._zoneDict = new Dictionary<string, Zone> ();
 		}
 
-		public Map (int radius, Dictionary<string, string> zoneNames)
+		public Map (int radius, SerializableDictionary<string, string> zoneNameDict)
 		{
 			this.radius = radius;
-			this.zoneNames = zoneNames;
-			this._zones = new Dictionary<string, Zone> ();
+			this.zoneNameDict = zoneNameDict;
+			this._zoneDict = new Dictionary<string, Zone> ();
 		}
 
-		public static Map LoadMapFromXml(string path)
+		public static Map LoadMapFromXml(string fileName)
 		{
 			Map map = null;
-			string mapName = Res.GetMapConfPath (path);
-			if (FileUtilEx.HasFile (mapName)) {
-				map.path = path;
+			string path = Res.GetMapPath (fileName);
+			if (FileUtilEx.HasDirectory (path)) {
+				string mapName = Res.GetMapConfPath (path);
+				Debug.Log ("LoadMapFromXml mapName " + mapName);
 				string dataStr = XmlUtil.LoadXml (mapName);
 				map = XmlUtil.DeserializeObject (dataStr, typeof(Map)) as Map;
+				map.path = path;
 				
 				if (map.GetCurZone () != null) {
 					for (int i = 0; i < 6; i++) {
@@ -56,23 +64,32 @@ namespace Stone.Hex
 						map.GetZone (nearHex);
 					}
 				}
-
 			} else {
 				Debug.Log ("LoadMapFromXml can't find");
 			}
 			return map;
 		}
 
-		public static void SaveMapToXml(string path, Map map)
+		public static void SaveMapToXml(string fileName, Map map)
 		{
+			string path = Res.GetMapPath (fileName);
+			FileUtilEx.CreateDirectory (path);
+
 			string mapName = Res.GetMapConfPath (path);
 			string dataStr = XmlUtil.SerializeObject (map, typeof(Map));
 			XmlUtil.CreateXml (mapName, dataStr);
+
+			foreach (KeyValuePair<string, Zone> kv in map.zoneDict) {
+				if (kv.Value.isDirty) {
+					string zonePath = Res.GetMapZonePath(path, kv.Key);
+					Zone.SaveZoneToXml(zonePath, kv.Value);
+				}
+			}
 		}
 		
 		public bool IsEmpty()
 		{
-			return zoneNames.Count == 0;
+			return zoneNameDict.Count == 0;
 		}
 
 		/// <summary>
@@ -99,7 +116,7 @@ namespace Stone.Hex
 		public bool HasZoneName(Hex hex)
 		{
 			string key = GetZoneKey (hex);
-			return zoneNames.ContainsKey (key);
+			return zoneNameDict.ContainsKey (key);
 		}
 
 		public string GetZoneKey(Hex hex)
@@ -116,11 +133,11 @@ namespace Stone.Hex
 		{
 			Zone zone = null;
 			string key = GetZoneKey (hex);
-			if (_zones.ContainsKey (key)) {
-				zone = _zones [key];
-			} else if (zoneNames.ContainsKey (key)) {
+			if (_zoneDict.ContainsKey (key)) {
+				zone = _zoneDict [key];
+			} else if (zoneNameDict.ContainsKey (key)) {
 				zone = Zone.LoadZoneFromXml (Res.GetMapZonePath (path, key));
-				_zones.Add (key, zone);
+				_zoneDict.Add (key, zone);
 			}
 			return zone;
 		}
@@ -157,9 +174,9 @@ namespace Stone.Hex
 				}
 			}
 
-			_zones.Add (key, zone);
-			if (!zoneNames.ContainsKey (key)) {
-				zoneNames.Add (key, key);
+			_zoneDict.Add (key, zone);
+			if (!zoneNameDict.ContainsKey (key)) {
+				zoneNameDict.Add (key, key);
 			}
 		}
 	}

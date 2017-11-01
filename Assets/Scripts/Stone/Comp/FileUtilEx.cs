@@ -46,6 +46,23 @@ namespace Stone.Comp
 		}
 
 		/// <summary>
+		/// Gets the forlds.
+		/// </summary>
+		/// <returns>The forlds.</returns>
+		/// <param name="dirPath">Dir path.</param>
+		public static List<string> GetForldNames(string dirPath)
+		{  
+			Debug.Log("GetForldNames dirPath = " + dirPath);
+			List<string> forlds = new List<string> ();
+
+			DirectoryInfo info = new DirectoryInfo (dirPath);
+			foreach (DirectoryInfo folder in info.GetDirectories()) {
+				forlds.Add (folder.Name);
+			}
+			return forlds;
+		}
+
+		/// <summary>
 		/// 获取所有文件夹中包含后缀为 extension 的文件名
 		/// </summary>
 		/// <returns>The file names.</returns>
@@ -76,6 +93,18 @@ namespace Stone.Comp
 		public static bool HasFile(string fileName)
 		{
 			return File.Exists (fileName);
+		}
+
+		public static bool HasDirectory(string path)
+		{
+			return Directory.Exists (path);
+		}
+
+		public static void CreateDirectory(string path)
+		{
+			if (!Directory.Exists (path)) {
+				Directory.CreateDirectory (path);
+			}
 		}
 	}  
 } 

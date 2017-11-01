@@ -10,8 +10,10 @@ using Stone.Hex;
 public class CellMng : BaseBehaviour {
 
 	public bool m_walkable;
-	public string m_pfName;
-	public string m_triggerPfName;
+	public GameObject m_groundPf;
+//	public GameObject m_triggerPf;
+
+	private GameObject _preGroundPf;
 
 	private Cell _data;
 	public Cell data { 
@@ -19,10 +21,18 @@ public class CellMng : BaseBehaviour {
 		set { 
 			_data = value;
 			m_walkable = _data.walkable;
-			m_pfName = _data.pfName;
-			m_triggerPfName = _data.triggerPfName;
+
+			m_groundPf = (GameObject) AssetDatabase.LoadAssetAtPath(_data.pfName, typeof(GameObject));
+			_preGroundPf = m_groundPf;
+
+			refreshCell ();
 		} 
 	}
+	
+	public event EventHandler OnDataChange;
+
+	private GameObject _groundGO;
+	private GameObject _obstacleGO;
 
 	protected override void OnInitFirst()  
 	{  
@@ -39,31 +49,48 @@ public class CellMng : BaseBehaviour {
 		
 	}
 
+	public void refreshCell()
+	{
+		_refreshWalkable ();
+		_refreshGroundPf ();
+	}
+
 	private void _refreshWalkable()
 	{
-		Debug.Log("_refreshWalkable childcount " + gameObject.transform.childCount);
-		GameObject ground = gameObject.transform.GetChild (0).gameObject;
-		ground.GetComponent<MeshRenderer> ().material.color = m_walkable ? Color.white : Color.red;
-	}
-
-	private void _refreshPfName()
-	{
-		Debug.Log("_refreshPfName childcount " + gameObject.transform.childCount);
-		if(gameObject.transform.childCount > 0){
-			GameObject oldGround = gameObject.transform.GetChild (0).gameObject;
-			Destroy (oldGround);
+		if (!m_walkable) {
+			if (_obstacleGO == null) {
+				GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath (Res.ObstaclePath, typeof(GameObject));
+				_obstacleGO = Instantiate (prefab);
+				_obstacleGO.transform.parent = gameObject.transform;
+				_obstacleGO.transform.localPosition = new Vector3 (0, 0.3f, 0);
+			}
+			_obstacleGO.SetActive (true);
+		} else if (_obstacleGO != null) {
+			_obstacleGO.SetActive(false);
 		}
-
-		GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath(m_pfName, typeof(GameObject));
-		GameObject ground = Instantiate (prefab);
-		ground.transform.parent = gameObject.transform;
-		ground.GetComponent<MeshRenderer> ().material.color = m_walkable ? Color.white : Color.red;
-		ground.transform.localPosition = Vector3.zero;
 	}
 
-	private void _refreshTriggerPfName()
+	private void _refreshGroundPf()
+	{
+		if (_groundGO != null) {
+			Destroy (_groundGO);
+		}
+		
+		_groundGO = Instantiate (m_groundPf);
+		_groundGO.transform.parent = gameObject.transform;
+		_groundGO.transform.localPosition = Vector3.zero;
+	}
+
+	private void _refreshTriggerPf()
 	{
 
+	}
+
+	private void _onDataChange()
+	{
+		if (OnDataChange != null) {
+			OnDataChange (this, EventArgs.Empty);
+		}
 	}
 
 #if UNITY_EDITOR
@@ -76,30 +103,24 @@ public class CellMng : BaseBehaviour {
 
 	void OnValidate()
 	{
-		Debug.Log("脚本对象数据发生改变事件");
 		if (_data != null) {
+			Debug.Log("脚本对象数据发生改变事件");
+
 			if (m_walkable != _data.walkable) {
 				Debug.Log ("m_walkable " + m_walkable.ToString ());
 				_data.walkable = m_walkable;
 				_refreshWalkable ();
+				_onDataChange ();
 			}
 				
-			if (m_pfName != _data.pfName) {
-				if (FileUtilEx.HasFile (m_pfName)) {
-					Debug.Log ("m_pfName " + m_pfName);
-					Debug.Log ("_data.pfName " + _data.pfName);
-					_data.pfName = m_pfName;
-					_refreshPfName ();
-				}
-			}
+			if (m_groundPf != _preGroundPf) {
+				_preGroundPf = m_groundPf;
+				string pfName = AssetDatabase.GetAssetPath (m_groundPf);
+				_data.pfName = pfName;
 
-			if (m_triggerPfName != _data.triggerPfName) {
-				if (FileUtilEx.HasFile (m_triggerPfName)) {
-					Debug.Log ("m_triggerPfName " + m_triggerPfName);
-					Debug.Log ("_data.triggerPfName " + _data.triggerPfName);
-					_data.triggerPfName = m_triggerPfName;
-					_refreshTriggerPfName ();
-				}
+				Debug.Log ("pfName change " + pfName);
+				_refreshGroundPf ();
+				_onDataChange ();
 			}
 		}
 	}

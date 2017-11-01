@@ -64,10 +64,12 @@ namespace Stone.Hex
 
 		public static Zone LoadZoneFromXml(string path)
 		{
+			Debug.Log ("LoadZoneFromXml path " + path);
 			Zone zone = null;
 			if (FileUtilEx.HasFile (path)) {
 				string dataStr = XmlUtil.LoadXml (path);
 				zone = XmlUtil.DeserializeObject (dataStr, typeof(Zone)) as Zone;
+				zone.count = zone.cells.Count;
 			} else {
 				Debug.Log ("LoadZoneFromXml can't find");
 			}
@@ -76,6 +78,7 @@ namespace Stone.Hex
 
 		public static void SaveZoneToXml(string path, Zone zone)
 		{
+			Debug.Log ("SaveZoneToXml path " + path);
 			if (zone.isDirty) {
 				zone.isDirty = false;
 				string dataStr = XmlUtil.SerializeObject (zone, typeof(Zone));

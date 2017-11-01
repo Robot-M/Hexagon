@@ -12,6 +12,7 @@ namespace Stone.Comp
 		static public string MapPath = "Assets/Configs/maps/";
 		static public string ZonePath = "Assets/Configs/zones/";
 		static public string GroundPath = "Assets/Prefabs/dizhuan/";
+		static public string ObstaclePath = "Assets/Prefabs/obstacle/obstacle_1.prefab";
 
 		static public string GetZonePath(string fileName)
 		{

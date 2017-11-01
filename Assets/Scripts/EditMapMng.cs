@@ -30,6 +30,9 @@ public class EditMapMng : BaseBehaviour {
 		get { return _map; } 
 	}
 
+	// 是否是map编辑／zone编辑
+	private bool _isMap;
+
 	private System.Random _random;
 	private List<string> _pfNameList;
 
@@ -50,13 +53,12 @@ public class EditMapMng : BaseBehaviour {
 		
 	}
 
-	private string _getRandomPf()
+	public void CellChange(Cell cell)
 	{
-		int index = _random.Next (_pfNameList.Count);
-		return _pfNameList [index];
+
 	}
 
-	private void _clearGameObject()
+	public void ClearGameObject()
 	{
 		for (int i = 0; i < m_transform.childCount; i++) {  
 			Destroy (m_transform.GetChild (i).gameObject);  
@@ -67,7 +69,6 @@ public class EditMapMng : BaseBehaviour {
 
 	private void _openZone(Zone zone)
 	{
-		
 		for (int i = 0; i < zone.count; i++) {
 			Cell cell = zone.cells [i];
 
@@ -76,22 +77,32 @@ public class EditMapMng : BaseBehaviour {
 			GameObject go = Instantiate (m_cellPf);
 			go.transform.parent = m_transform;
 			go.transform.position = new Vector3((float)pt.x, 0.0f, (float)pt.y);
-			go.GetComponent<CellMng> ().data = cell;
-			
-			GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath(cell.pfName, typeof(GameObject));
-			GameObject ground = Instantiate (prefab);
-			ground.transform.parent = go.transform;
-			ground.GetComponent<MeshRenderer> ().material.color = cell.walkable ? Color.white : Color.red;
-			ground.transform.localPosition = Vector3.zero;
+
+			CellMng mng = go.GetComponent<CellMng> ();
+			mng.data = cell;
+			mng.OnDataChange += _handleCellDataChange;
+		}
+	}
+
+	private void _handleCellDataChange (object sender, EventArgs e)
+	{
+		CellMng mng = (CellMng)sender;
+		Cell cell = mng.data;
+		if (_isMap) {
+			Zone zone = _map.GetZone (cell.zoneHex);
+			zone.isDirty = true;
+		} else {
+			_zone.isDirty = true;
 		}
 	}
 
 	public void CreateZone(string fileName)
 	{
 		Debug.Log ("CreateZone");
-
+		
+		_isMap = false;
+		ClearGameObject ();
 		_zone = _getRandomZone (true);
-		_clearGameObject ();
 		_openZone (_zone);
 	}
 	
@@ -99,10 +110,11 @@ public class EditMapMng : BaseBehaviour {
 	{
 		string path = Res.GetZonePath (fileName);
 		Debug.Log ("OpenZone path " + path);
-
+		
+		_isMap = false;
+		ClearGameObject ();
 		_zone = Zone.LoadZoneFromXml (path);
 		if (_zone != null) {
-			_clearGameObject ();
 			_openZone (_zone);
 		} else {
 			Debug.Log ("OpenZone fail");
@@ -126,6 +138,8 @@ public class EditMapMng : BaseBehaviour {
 
 	private void _openMap()
 	{
+		_isMap = true;
+		ClearGameObject ();
 		if (!_map.IsEmpty ()) {
 			List<Zone> zones = _map.GetShowZones ();
 			foreach (Zone zone in zones) {
@@ -142,8 +156,14 @@ public class EditMapMng : BaseBehaviour {
 
 	public void OpenMap(string fileName)
 	{
-		_map = Map.LoadMapFromXml (Res.GetMapPath (fileName));
+		_map = Map.LoadMapFromXml (fileName);
 		_openMap ();
+	}
+	
+	private string _getRandomPf()
+	{
+		int index = _random.Next (_pfNameList.Count);
+		return _pfNameList [index];
 	}
 
 	private Zone _getRandomZone(bool isCreate=false)
@@ -162,8 +182,8 @@ public class EditMapMng : BaseBehaviour {
 			Debug.Log ("_getRandomZone Random zone " + name);
 		} else {
 			zone = new Zone (new Hex(), m_zoneRadius);
-			for (int i = 0; i < _zone.count; i++) {
-				Cell cell = _zone.cells [i];
+			for (int i = 0; i < zone.count; i++) {
+				Cell cell = zone.cells [i];
 				cell.pfName = _getRandomPf ();
 				cell.walkable = _random.Next (10) < 6;
 			}
@@ -185,9 +205,7 @@ public class EditMapMng : BaseBehaviour {
 	public void SaveMap(string fileName)
 	{
 		Debug.Log ("SaveMap fileName " + fileName);
-
-		string path = Res.GetMapPath (fileName);
-
+		
 		Map.SaveMapToXml (fileName, _map);
 	}
 
