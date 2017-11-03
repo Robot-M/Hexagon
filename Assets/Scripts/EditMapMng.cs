@@ -34,15 +34,18 @@ public class EditMapMng : BaseBehaviour {
 	private bool _isMap;
 
 	private System.Random _random;
-	private List<string> _pfNameList;
-
+	private List<string> _pfNames;
 	private List<string> _zoneNames;
+
+	EventSystem _eventSystem;
 
 	protected override void OnInitFirst()  
 	{  
+		_eventSystem = FindObjectOfType<EventSystem> ();
+
 		_layout = new Layout (Layout.pointy, new Point(m_sizeX, m_sizeY), new Point(0,0));
 
-		_pfNameList = FileUtilEx.GetDirs (Res.GroundPath, ".prefab");
+		_pfNames = FileUtilEx.GetDirs (Res.GroundPath, ".prefab");
 		_zoneNames = FileUtilEx.GetFileNames(Res.ZonePath, Res.ConfExt);
 
 		_random = new System.Random (unchecked((int)DateTime.Now.Ticks));
@@ -72,9 +75,11 @@ public class EditMapMng : BaseBehaviour {
 		for (int i = 0; i < zone.count; i++) {
 			Cell cell = zone.cells [i];
 
-			Point pt = Layout.HexToPixel (_layout, cell.hex + zone.centerHex);
+			Hex realHex = cell.hex + zone.centerHex;
+			Point pt = Layout.HexToPixel (_layout, realHex);
 
 			GameObject go = Instantiate (m_cellPf);
+			go.name = "hex_" + realHex.q + "_" + realHex.r;
 			go.transform.parent = m_transform;
 			go.transform.position = new Vector3((float)pt.x, 0.0f, (float)pt.y);
 
@@ -162,8 +167,8 @@ public class EditMapMng : BaseBehaviour {
 	
 	private string _getRandomPf()
 	{
-		int index = _random.Next (_pfNameList.Count);
-		return _pfNameList [index];
+		int index = _random.Next (_pfNames.Count);
+		return _pfNames [index];
 	}
 
 	private Zone _getRandomZone(bool isCreate=false)
@@ -211,14 +216,35 @@ public class EditMapMng : BaseBehaviour {
 
 	protected override void OnUpdate()  
 	{  
-		//		var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		//
-		//		// Ignore any input while the mouse is over a UI element
-		//		if (_eventSystem.IsPointerOverGameObject()) {
-		//			return;
-		//		}
+		if (Input.GetMouseButtonUp(0)) {
+			_handleInput();
+		}
+	}
 
+	void _handleInput()
+	{
+		// Ignore any input while the mouse is over a UI element
+		if (_eventSystem.IsPointerOverGameObject()) {
+			return;
+		}
 
+		Debug.Log ("mouse up");
+
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		RaycastHit hit;
+		if (Physics.Raycast(ray, out hit)) {
+			Transform trans = hit.transform;
+			GameObject go = hit.transform.gameObject;
+			CellMng mng1 = go.GetComponent<CellMng> ();
+			CellMng mng2 = trans.GetComponentInParent<CellMng> ();
+			CellMng mng3 = trans.GetComponent<CellMng>();
+
+			Debug.Log ("click hit.trans.go name " +  go.name);
+			Debug.Log ("click hit.trans name " + hit.transform.name);
+			Debug.Log ("click hit mng1 name " + mng1.data.pfName);
+			Debug.Log ("click hit mng2 name " + mng2.data.pfName);
+			Debug.Log ("click hit mng3 name " + mng3.data.pfName);
+		}
 	}
 
 }
