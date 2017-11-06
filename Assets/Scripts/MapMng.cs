@@ -24,15 +24,15 @@ public class MapMng : BaseBehaviour {
 	private Layout _layout;
 	private Dictionary<string, Hex> _mapDatas;
 
-	EventSystem _eventSystem;
+	//EventSystem _eventSystem;
 
 	protected override void OnInitFirst()  
 	{  
-		_eventSystem = FindObjectOfType<EventSystem> ();
+		//_eventSystem = FindObjectOfType<EventSystem> ();
 
 		_pfNameList = FileUtilEx.GetDirs ("Assets/Prefabs/ground", ".prefab");
 
-		List<string> fileNames = FileUtilEx.GetFileNames("Assets/Prefabs/ground", ".prefab");
+		//List<string> fileNames = FileUtilEx.GetFileNames("Assets/Prefabs/ground", ".prefab");
 
 		_layerMask = LayerMask.NameToLayer ("Ground");
 

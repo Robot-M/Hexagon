@@ -456,6 +456,7 @@ GameObject:
   - component: {fileID: 512833687}
   - component: {fileID: 512833686}
   - component: {fileID: 512833685}
+  - component: {fileID: 512833690}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -526,13 +527,27 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 512833684}
-  m_LocalRotation: {x: 0.4217002, y: -0, z: -0, w: 0.90673536}
+  m_LocalRotation: {x: 0.42261827, y: 0, z: 0, w: 0.9063079}
   m_LocalPosition: {x: 0, y: 10, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 49.884003, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 50, y: 0, z: 0}
+--- !u!114 &512833690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 512833684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fabeec2c2a8fc3e4ca90de87395b89eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  go: {fileID: 1505529774184024, guid: 6b48c20928d273540a3a37bf0445d82c, type: 2}
+  direct: 0
+  issueGUOs: 1
 --- !u!1 &637606411
 GameObject:
   m_ObjectHideFlags: 0
@@ -1893,20 +1908,6 @@ Light:
   m_Lightmapping: 4
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_FalloffTable:
-    m_Table[0]: 0
-    m_Table[1]: 0
-    m_Table[2]: 0
-    m_Table[3]: 0
-    m_Table[4]: 0
-    m_Table[5]: 0
-    m_Table[6]: 0
-    m_Table[7]: 0
-    m_Table[8]: 0
-    m_Table[9]: 0
-    m_Table[10]: 0
-    m_Table[11]: 0
-    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0

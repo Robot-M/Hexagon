@@ -21,9 +21,10 @@ GameObject:
   - component: {fileID: 4227916689449418}
   - component: {fileID: 33998737336807356}
   - component: {fileID: 23860241627937142}
+  - component: {fileID: 64698574924684014}
   m_Layer: 0
   m_Name: dizhuan_3
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -79,4 +80,18 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1365237837067712}
+  m_Mesh: {fileID: 4300000, guid: 5287a18814045714989182559a4f14c2, type: 3}
+--- !u!64 &64698574924684014
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1365237837067712}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Convex: 0
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300000, guid: 5287a18814045714989182559a4f14c2, type: 3}

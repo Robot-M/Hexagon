@@ -217,7 +217,7 @@ public class EditMapMng : BaseBehaviour {
 	protected override void OnUpdate()  
 	{  
 		if (Input.GetMouseButtonUp(0)) {
-			_handleInput();
+			//_handleInput();
 		}
 	}
 
