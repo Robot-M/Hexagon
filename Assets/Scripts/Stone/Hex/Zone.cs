@@ -14,6 +14,8 @@ namespace Stone.Hex
 			set { 
 				if (!Hex.Equals (_hex, value)){
 					_hex = value;
+					_name = "hex_" + _hex.q + "_" + _hex.r;
+
 					for (int i = 0; i < cells.Count; i++) {
 						Cell cell = cells [i];
 						cell.zoneHex = value;
@@ -33,6 +35,13 @@ namespace Stone.Hex
 
 		[XmlIgnore]
 		public bool isDirty = false;
+
+		//zone 名字
+		private string _name;
+		[XmlIgnore]
+		public string name { 
+			get { return _name; }  
+		}
 
 		public Zone ()
 		{

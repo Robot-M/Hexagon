@@ -10,6 +10,8 @@ namespace Stone.Hex
 	{
 		public int radius = 3;
 
+		public Layout layout;
+
 		public Hex curHex;
 
 		public SerializableDictionary<string, string> zoneNameDict;
@@ -26,25 +28,28 @@ namespace Stone.Hex
 
 		private List<Hex> _spiralHexs;
 
+		private List<Zone> _showZones;
+		private Dictionary<string, Cell> _showCells;
+
 		public Map()
 		{
-			this.radius = 3;
-			this.zoneNameDict = new SerializableDictionary<string, string> ();
-			this._zoneDict = new Dictionary<string, Zone> ();
+			init (3, new Layout (Layout.pointy, new Point(1, 1), new Point(0,0)));
 		}
 
-		public Map(int radius)
+		public Map(int radius, Layout layout)
 		{
-			this.radius = radius;
-			this.zoneNameDict = new SerializableDictionary<string, string> ();
-			this._zoneDict = new Dictionary<string, Zone> ();
+			init (radius, layout);
 		}
 
-		public Map (int radius, SerializableDictionary<string, string> zoneNameDict)
+		private void init(int radius, Layout layout)
 		{
 			this.radius = radius;
-			this.zoneNameDict = zoneNameDict;
+			this.layout = layout;
+			this.zoneNameDict = new SerializableDictionary<string, string> ();
 			this._zoneDict = new Dictionary<string, Zone> ();
+
+			this._showZones = new List<Zone> ();
+			this._showCells = new Dictionary<string, Cell> ();
 		}
 
 		public static Map LoadMapFromXml(string fileName)
@@ -80,6 +85,7 @@ namespace Stone.Hex
 			XmlUtil.CreateXml (mapName, dataStr);
 
 			foreach (KeyValuePair<string, Zone> kv in map.zoneDict) {
+				Debug.Log ("SaveMapToXml zone " + kv.Key);
 				if (kv.Value.isDirty) {
 					string zonePath = Res.GetMapZonePath(path, kv.Key);
 					Zone.SaveZoneToXml(zonePath, kv.Value);
@@ -144,19 +150,56 @@ namespace Stone.Hex
 
 		public List<Zone> GetShowZones()
 		{
-			List<Zone> zones = new List<Zone> ();
-			Zone zone = GetZone (curHex);
-			if (zone != null) {
-				zones.Add (zone);
-				for (int i = 0; i < 6; i++) {
-					Hex nearHex = Hex.Neighbor (curHex, i);
-					zone = GetZone (nearHex);
-					if (zone != null) {
-						zones.Add (zone);
+			if (_showZones.Count == 0) {
+				Zone zone = GetZone (curHex);
+				if (zone != null) {
+					addShowZone (zone);
+					for (int i = 0; i < 6; i++) {
+						Hex nearHex = Hex.Neighbor (curHex, i);
+						zone = GetZone (nearHex);
+						if (zone != null) {
+							addShowZone (zone);
+						}
 					}
 				}
 			}
-			return zones;
+			return _showZones;
+		}
+
+		public List<Cell> GetCellNeighbors(Cell cell)
+		{
+			List<Cell> results = new List<Cell> ();
+			Hex hex = cell.realHex;
+			for (int i = 0; i < 6; i++) {
+				Hex nearHex = Hex.Neighbor (hex, i);
+				string key = "hex_" + nearHex.q + "_" + nearHex.r;
+				Cell nearCell;
+				_showCells.TryGetValue (key, out nearCell);
+				if (nearCell != null) {
+					results.Add (nearCell);
+				}
+			}
+			return results;
+		}
+
+		private void addShowZone(Zone zone)
+		{
+			_showZones.Add (zone);
+			for (int i = 0; i < zone.count; i++) {
+				Cell cell = zone.cells [i];
+				cell.realHex = cell.hex + zone.centerHex;
+				cell.point = Layout.HexToPixel (layout, cell.realHex);
+				_showCells.Add (cell.realName, cell);
+			}
+		}
+
+		private void removeShowZone(Zone zone)
+		{
+			_showZones.Remove (zone);
+			for (int i = 0; i < zone.count; i++) {
+				Cell cell = zone.cells [i];
+				_showCells.Remove (cell.realName);
+			}
 		}
 
 		public void AddZone(Hex hex, Zone zone)
@@ -177,6 +220,11 @@ namespace Stone.Hex
 			_zoneDict.Add (key, zone);
 			if (!zoneNameDict.ContainsKey (key)) {
 				zoneNameDict.Add (key, key);
+			}
+
+			// 位置在半径内，addShowZone
+			if (Hex.Distance (hex, curHex) <= radius) {
+				addShowZone (zone);
 			}
 		}
 	}

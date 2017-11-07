@@ -51,23 +51,23 @@ public class CellMng : BaseBehaviour {
 
 	void OnMouseEnter()
 	{
-		print ("鼠标进入区域");
+//		print ("鼠标进入区域");
 	}
 
 	void OnMouseOver(){
 //		print ("鼠标停留在区域内");
 	}
 	void OnMouseExit(){
-		print ("鼠标离开区域");
+//		print ("鼠标离开区域");
 	}
 	void OnMouseDown(){
-		print ("鼠标按下");
+//		print ("鼠标按下");
 	}
 	void OnMouseUp(){
-		print ("鼠标松开");
+//		print ("鼠标松开");
 	}
 	void OnMouseDrag(){
-		print ("鼠标拖拽");
+//		print ("鼠标拖拽");
 	}
 
 	public void refreshCell()

@@ -20,7 +20,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4064941015467586}
   - component: {fileID: 114962715363821638}
-  m_Layer: 0
+  - component: {fileID: 64875124120239408}
+  m_Layer: 8
   m_Name: Cell
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,6 +41,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &64875124120239408
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1123072953710062}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Convex: 0
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300000, guid: a8b46a53cde38ed4ab099dac072d87c5, type: 3}
 --- !u!114 &114962715363821638
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -52,5 +67,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_walkable: 0
-  m_pfName: 
-  m_triggerPfName: 
+  m_groundPf: {fileID: 0}
