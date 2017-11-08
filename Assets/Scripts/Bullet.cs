@@ -11,6 +11,7 @@ public class Bullet : Pooled_BehaviourUnit
 	private float m_moveTime=3;
 	[System.NonSerialized][Tooltip("移动计数")]
 	private float m_moveTimeTick;
+	private float AA;
 	protected override void OnInitFirst()
 	{
 	}
