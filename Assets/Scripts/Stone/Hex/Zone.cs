@@ -14,7 +14,7 @@ namespace Stone.Hex
 			set { 
 				if (!Hex.Equals (_hex, value)){
 					_hex = value;
-					_name = "hex_" + _hex.q + "_" + _hex.r;
+					_name = "zone_" + _hex.q + "_" + _hex.r;
 
 					for (int i = 0; i < cells.Count; i++) {
 						Cell cell = cells [i];
@@ -37,7 +37,7 @@ namespace Stone.Hex
 		public bool isDirty = false;
 
 		//zone 名字
-		private string _name;
+		private string _name = "zone_0_0";
 		[XmlIgnore]
 		public string name { 
 			get { return _name; }  
@@ -48,27 +48,29 @@ namespace Stone.Hex
 			
 		}
 
-		public Zone(Hex hex, int radius=3, List<Cell> cells=null)
+		public Zone(Hex hex, int radius, List<Cell> cells)
 		{
-			this._hex = hex;
+			this.hex = hex;
 			this.radius = radius;
+			this.cells = cells;
+			this.count = cells.Count;
+		}
 
-			// 如果没有cells，创建默认的cells
-			if (cells == null) {
-				this.cells = new List<Cell> ();
-				for (int q = -radius; q <= radius; q++) {
-					int r1 = Math.Max (-radius, -q - radius);
-					int r2 = Math.Min (radius, -q + radius);
-					for (int r = r1; r <= r2; r++) {
-						Hex cHex = new Hex (q, r, -q - r);
-						Cell cell = new Cell (hex, cHex, true);
-						this.cells.Add (cell);
-					}
+		public static Zone GetRandomZone(Hex hex, int radius)
+		{
+			List<Cell> cells = new List<Cell> ();
+
+			for (int q = -radius; q <= radius; q++) {
+				int r1 = Math.Max (-radius, -q - radius);
+				int r2 = Math.Min (radius, -q + radius);
+				for (int r = r1; r <= r2; r++) {
+					Hex cHex = new Hex (q, r, -q - r);
+					Cell cell = new Cell (hex, cHex, true);
+					cells.Add (cell);
 				}
-			} else {
-				this.cells = cells;
 			}
-			this.count = this.cells.Count;
+
+			return new Zone (hex, radius, cells);
 		}
 
 		public static Zone LoadZoneFromXml(string path)

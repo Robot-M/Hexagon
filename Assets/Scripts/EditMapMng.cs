@@ -207,7 +207,7 @@ public class EditMapMng : BaseBehaviour {
 	{
 		bool isRandom = false;
 		if (!isCreate) {
-			isRandom = _random.Next (10) > 7;
+			isRandom = _random.Next (10) < 5;
 		}
 
 		Zone zone;
@@ -218,11 +218,11 @@ public class EditMapMng : BaseBehaviour {
 
 			Debug.Log ("_getRandomZone Random zone " + name);
 		} else {
-			zone = new Zone (new Hex(), m_zoneRadius);
+			zone = Zone.GetRandomZone (new Hex(), m_zoneRadius);
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
 				cell.pfName = _getRandomPf ();
-				cell.walkable = _random.Next (10) < 6;
+				cell.walkable = _random.Next (10) < 8;
 			}
 		}
 		zone.isDirty = true;

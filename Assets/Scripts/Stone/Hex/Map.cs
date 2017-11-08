@@ -75,10 +75,17 @@ namespace Stone.Hex
 			return map;
 		}
 
+		/// <summary>
+		/// 保存地图
+		/// </summary>
+		/// <param name="fileName">File name.</param>
+		/// <param name="map">Map.</param>
 		public static void SaveMapToXml(string fileName, Map map)
 		{
 			string path = Res.GetMapPath (fileName);
 			FileUtilEx.CreateDirectory (path);
+
+			map.path = path;
 
 			string mapName = Res.GetMapConfPath (path);
 			string dataStr = XmlUtil.SerializeObject (map, typeof(Map));
@@ -91,6 +98,18 @@ namespace Stone.Hex
 					Zone.SaveZoneToXml(zonePath, kv.Value);
 				}
 			}
+		}
+
+		/// <summary>
+		/// 保存单个有改变的zone
+		/// </summary>
+		/// <param name="map">Map.</param>
+		/// <param name="zone">Zone.</param>
+		public static void SaveMapZoneToXml(Map map, Zone zone)
+		{
+			Debug.Log ("SaveMapZoneToXml zone " + zone.name);
+			string zonePath = Res.GetMapZonePath(map.path, zone.name);
+			Zone.SaveZoneToXml(zonePath, zone);
 		}
 		
 		public bool IsEmpty()
