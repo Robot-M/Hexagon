@@ -26,7 +26,18 @@ public class PlayerMng : BaseBehaviour {
 		} 
 	}
 
+	private Player _data;
+	public Player data {
+		get { return _data; } 
+		set { 
+			_data = value;
+
+
+		} 
+	}
+
 	public event EventHandler OnCellChange;
+	public event EventHandler OnDataChange;
 
 	protected override void OnInitFirst()  
 	{  

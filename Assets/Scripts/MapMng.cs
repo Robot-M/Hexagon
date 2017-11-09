@@ -59,6 +59,8 @@ public class MapMng : BaseBehaviour {
 	protected override void OnInitSecond()
 	{  
 		_playerMng = m_playerTf.GetComponent<PlayerMng> ();
+		_playerMng.data = Player.CreatePlayer ("无尽骑士", 1);
+		_playerMng.OnDataChange += _handlePlayerDataChange;
 		_playerMng.OnCellChange += _handlePlayerCellChange;
 	}
 
@@ -73,6 +75,11 @@ public class MapMng : BaseBehaviour {
 		for (int i = 0; i < m_transform.childCount; i++) {  
 			Destroy (m_transform.GetChild (i).gameObject);  
 		}
+	}
+
+	void _handlePlayerDataChange(object sender, EventArgs e)
+	{
+
 	}
 
 	// player移动监听
@@ -242,10 +249,15 @@ public class MapMng : BaseBehaviour {
 			}
 		}
 
-//		if (_playerMng.cell == null && cell.walkable) {
-//			Debug.Log ("_playerMng init");
-//			_playerMng.cell = cell;
-//		}
+		// test 选一个空位置初始化
+		Zone curZone = _map.GetCurZone();
+		for(int i = 0; i < curZone.count; i++){
+			Cell cell = curZone.cells[i];
+			if(cell.walkable){
+				_playerMng.cell = cell;
+				break;
+			}
+		}
 	}
 
 	public void SaveMap()

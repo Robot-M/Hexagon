@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 using UnityEngine;
 using Stone.Core;
 
-namespace Stone.Data
+namespace Stone.Core
 {
 	public class Player:Role
 	{
