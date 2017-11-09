@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.EventSystems;
-using Stone.Comp;
-using Stone.Hex;
+using Stone.Core;
 
 public class CellMng : BaseBehaviour {
 

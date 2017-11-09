@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace Stone.Comp
+namespace Stone.Core
 {
 	/// <summary>
 	/// 初始化状态

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Stone.Comp
+namespace Stone.Core
 {
 	public class Res
 	{
@@ -11,6 +11,7 @@ namespace Stone.Comp
 		static public string ConfExt = ".xml";
 		static public string MapPath = "Assets/Configs/maps/";
 		static public string ZonePath = "Assets/Configs/zones/";
+		static public string PlayerPath = "Assets/Configs/players/";
 		static public string GroundPath = "Assets/Prefabs/dizhuan/";
 		static public string ObstaclePath = "Assets/Prefabs/obstacle/obstacle_1.prefab";
 
@@ -32,6 +33,11 @@ namespace Stone.Comp
 		static public string GetMapZonePath(string path, string name)
 		{
 			return path + name + ConfExt;
+		}
+
+		static public string GetPlayerPath(int uid)
+		{
+			return PlayerPath + "player_" + uid + ConfExt;
 		}
 	}
 }

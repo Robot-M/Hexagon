@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Stone.Comp  
+namespace Stone.Core  
 {  
 	public static class FileUtilEx
 	{

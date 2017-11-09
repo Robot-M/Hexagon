@@ -1,8 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Stone.Util;
-using Stone.Comp;
+using Stone.Core;
 
 public class CompTest : BaseBehaviour {
 

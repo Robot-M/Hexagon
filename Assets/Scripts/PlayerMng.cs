@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.EventSystems;
-using Stone.Comp;
-using Stone.Hex;
+using Stone.Core;
 
 public class PlayerMng : BaseBehaviour {
 
@@ -14,12 +13,14 @@ public class PlayerMng : BaseBehaviour {
 		get { return _cell; } 
 		set { 
 			if(_cell != value){
-				if (_cell) {
+				if (_cell != null) {
 					_cell.mng = null;
 				}
 				_cell = value;
-				_cell.mng = this;
-				transform.position = new Vector3((float)_cell.point.x, transform.position.y, (float)_cell.point.y);
+				if (_cell != null) {
+					_cell.mng = this;
+					transform.position = new Vector3 ((float)_cell.point.x, transform.position.y, (float)_cell.point.y);
+				}
 				_onCellChange ();
 			}
 		} 

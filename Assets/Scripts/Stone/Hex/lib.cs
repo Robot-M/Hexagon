@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Stone.Hex  
+namespace Stone.Core  
 {
 	public struct Point
 	{
@@ -28,6 +28,29 @@ namespace Stone.Hex
 	    public readonly int q;
 	    public readonly int r;
 	    public readonly int s;
+
+		public override bool Equals(object b)
+		{
+			Hex hex = (Hex)b;
+			return this.q == hex.q && this.s == hex.s && this.r == hex.r;
+		}
+
+		public override int GetHashCode()
+		{
+			string key = "hex_" + q + "_" + r;
+			return key.GetHashCode();
+		}
+
+		static public bool operator==(Hex a, Hex b)
+		{
+			return a.Equals(b);
+		}
+
+		static public bool operator!=(Hex a, Hex b)
+		{
+			return !a.Equals(b);
+		}
+
 
 	    static public Hex Add(Hex a, Hex b)
 	    {
@@ -61,6 +84,11 @@ namespace Stone.Hex
 			return new Hex(a.q * k, a.r * k, a.s * k);
 		}
 
+		static public Hex operator*(int k, Hex a)
+		{
+			return new Hex(a.q * k, a.r * k, a.s * k);
+		}
+
 	    static public Hex RotateLeft(Hex a)
 	    {
 	        return new Hex(-a.s, -a.q, -a.r);
@@ -79,11 +107,24 @@ namespace Stone.Hex
 	        return Hex.directions[direction];
 	    }
 
+		static public int DirectionIndex(Hex direct)
+		{
+			int directIndex = directions.FindIndex(delegate(Hex o){
+				return o == direct;
+			});
+			return directIndex;
+		}
+
 
 	    static public Hex Neighbor(Hex hex, int direction)
 	    {
 	        return Hex.Add(hex, Hex.Direction(direction));
 	    }
+
+		public Hex Neighbor(int direction)
+		{
+			return Hex.Neighbor (this, direction);
+		}
 
 	    static public List<Hex> diagonals = new List<Hex>{new Hex(2, -1, -1), new Hex(1, -2, 1), new Hex(-1, -1, 2), new Hex(-2, 1, 1), new Hex(-1, 2, -1), new Hex(1, 1, -2)};
 
@@ -97,17 +138,31 @@ namespace Stone.Hex
 	        return Hex.Add(hex, Hex.diagonals[direction]);
 	    }
 
+		public Hex DiagonalNeighbor(int direction)
+		{
+			return Hex.DiagonalNeighbor (this, direction);
+		}
 
 	    static public int Length(Hex hex)
 	    {
 	        return (int)((Math.Abs(hex.q) + Math.Abs(hex.r) + Math.Abs(hex.s)) / 2);
 	    }
 
+		public int Length()
+		{
+			return Hex.Length (this);
+		}
+
 
 	    static public int Distance(Hex a, Hex b)
 	    {
 	        return Hex.Length(Hex.Subtract(a, b));
 	    }
+
+		public int Distance(Hex hex)
+		{
+			return Hex.Distance (this, hex);
+		}
 
 		/// <summary>
 		/// 获取指定半径的环.
@@ -199,9 +254,7 @@ namespace Stone.Hex
 				direct1 = new Hex (-r-s, r, s);
 			}
 
-			int directIndex = directions.FindIndex(delegate(Hex o){
-				return Hex.Equals(o, direct1);
-			});
+			int directIndex = Hex.DirectionIndex (direct1);
 			for(int i=0; i<len; i++){
 				results.Add (directIndex);
 			}

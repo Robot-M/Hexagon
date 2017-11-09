@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.EventSystems;
-using Stone.Comp;
-using Stone.Hex;
+using Stone.Core;
 
 public class MapMng : BaseBehaviour {
 
@@ -34,8 +33,8 @@ public class MapMng : BaseBehaviour {
 		get { return _map; } 
 	}
 
-	// 地图上所有显示的元素集合
-	private Dictionary<Cell, GameObject> _mapGoDict;
+	// 地图上所有显示的元素集合,分区域的集合
+	private Dictionary<Hex, Dictionary<Cell,GameObject>> _zoneGoDict;
 
 	// 随机生成zone
 	private System.Random _random;
@@ -54,50 +53,131 @@ public class MapMng : BaseBehaviour {
 		_pfNames = FileUtilEx.GetDirs (Res.GroundPath, ".prefab");
 		_zoneNames = FileUtilEx.GetFileNames(Res.ZonePath, Res.ConfExt);
 
-		_mapGoDict = new Dictionary<Cell, GameObject> ();
+		_zoneGoDict = new Dictionary<Hex, Dictionary<Cell,GameObject>> ();
 	}  
 
 	protected override void OnInitSecond()
 	{  
 		_playerMng = m_playerTf.GetComponent<PlayerMng> ();
-		_playerMng
+		_playerMng.OnCellChange += _handlePlayerCellChange;
 	}
 
+	// 清除map上的对象
 	public void ClearGameObject()
 	{
-		_mapGoDict.Clear ();
+		foreach (Dictionary<Cell,GameObject> dict in _zoneGoDict.Values) {
+			dict.Clear ();
+		}
+		_zoneGoDict.Clear ();
+
 		for (int i = 0; i < m_transform.childCount; i++) {  
 			Destroy (m_transform.GetChild (i).gameObject);  
 		}
 	}
 
-	//===================== zone =====================
-
-	private void _openZone(Zone zone)
+	// player移动监听
+	void _handlePlayerCellChange(object sender, EventArgs e)
 	{
-		for (int i = 0; i < zone.count; i++) {
-			Cell cell = zone.cells [i];
+		PlayerMng mng = (PlayerMng)sender;
+		Cell cell = mng.cell;
+		// 区域改变，刷新新区域
+		if (cell != null && cell.realHex != _map.curHex) {
+			List<Hex> addHexs; 
+			List<Hex> removeHexs; 
 
-			Point pt = cell.point;
+			_map.ChangeCurHex (cell.realHex, out addHexs, out removeHexs);
 
-			GameObject go = Instantiate (m_cellPf);
-			go.name = cell.realName;
-			go.transform.parent = m_transform;
-			go.transform.position = new Vector3((float)pt.x, 0.0f, (float)pt.y);
+			// 添加距离为1的zone
+			bool needSave = false;
+			foreach (Hex hex in addHexs) {
+				var zone = _map.GetZone (hex);
+				if (zone == null) {
+					zone = _getRandomZone ();
+					_map.AddZone (hex, zone);
+					needSave = true;
+				}
+				_showZone (zone);
+			}
 
-			CellMng mng = go.GetComponent<CellMng> ();
-			mng.OnDataChange += _handleCellDataChange;
-			mng.data = cell;
+			if (needSave) {
+				Map.SaveMapToXml (_map);
+			}
 
-			_mapGoDict.Add (cell, go);
+			// 隐藏距离为2的zone
+			foreach (Hex hex in removeHexs) {
+				_hideZone (hex);
+			}
 
-			if (_playerMng.cell == null && cell.walkable) {
-				Debug.Log ("_playerMng init");
-				_playerMng.cell = cell;
+			// 移除距离为3的zone
+			foreach (Hex hex in _zoneGoDict.Keys) {
+				if (hex.Distance (_map.curHex) >= 3) {
+					_removeZone (hex);
+				}
 			}
 		}
 	}
 
+	//===================== zone =====================
+	// 显示区域
+	private void _showZone(Zone zone)
+	{
+		if (zone == null) { return; }
+		if (_zoneGoDict.ContainsKey (zone.hex)) {
+			// 已存在，显示出来就行
+			var goDict = _zoneGoDict[zone.hex];
+			foreach (GameObject go in goDict.Values) {
+				go.SetActive (true);
+			}
+		} else {
+			// 不存在，添加
+			Dictionary<Cell,GameObject> goDict = new Dictionary<Cell, GameObject> ();
+			for (int i = 0; i < zone.count; i++) {
+				Cell cell = zone.cells [i];
+				
+				Point pt = cell.point;
+				
+				GameObject go = Instantiate (m_cellPf);
+				go.name = cell.realName;
+				go.transform.parent = m_transform;
+				go.transform.position = new Vector3((float)pt.x, 0.0f, (float)pt.y);
+				
+				CellMng mng = go.GetComponent<CellMng> ();
+				mng.OnDataChange += _handleCellDataChange;
+				mng.data = cell;
+				
+				goDict.Add (cell, go);
+			}
+			_zoneGoDict.Add (zone.hex, goDict);
+		}
+	}
+
+	// 隐藏区域
+	private void _hideZone(Hex hex)
+	{
+		if (_zoneGoDict.ContainsKey (hex)) {
+			// 已存在，隐藏出来就行
+			var goDict = _zoneGoDict [hex];
+			foreach (GameObject go in goDict.Values) {
+				go.SetActive (false);
+			}
+		}
+	}
+
+	// 移除区域
+	private void _removeZone(Hex hex)
+	{
+		if (_zoneGoDict.ContainsKey (hex)) {
+			// 已存在，隐藏出来就行
+			var goDict = _zoneGoDict [hex];
+			foreach (GameObject go in goDict.Values) {
+				Destroy (go);
+			}
+			goDict.Clear ();
+			_zoneGoDict.Remove (hex);
+		}
+	}
+
+	// 监听cell数据改变，用于保存改变
 	private void _handleCellDataChange (object sender, EventArgs e)
 	{
 		CellMng mng = (CellMng)sender;
@@ -107,15 +187,17 @@ public class MapMng : BaseBehaviour {
 		Map.SaveMapZoneToXml (_map, zone);
 	}
 
+	// 随机地板
 	private string _getRandomPf()
 	{
 		int index = _random.Next (_pfNames.Count);
 		return _pfNames [index];
 	}
 
+	// 随机或者从已有zone中取一个
 	private Zone _getRandomZone()
 	{
-		bool isRandom = _random.Next (10) < 5;
+		bool isRandom = _random.Next (10) < 3;
 
 		Zone zone;
 		if (isRandom) {
@@ -138,35 +220,37 @@ public class MapMng : BaseBehaviour {
 		return zone;
 	}
 
-	public void AddZone()
-	{
-		Hex hex;
-		if (_map.GetNextHex (out hex)) {
-			Zone zone = _getRandomZone ();
-			_map.AddZone (hex, zone);
-			_openZone (zone);
-		}
-	}
-
 	//===================== map =====================
+	/// <summary>
+	/// 从文件里面读取地图。
+	/// 默认情况时 显示当前区域，以及当前区域距离为1的六个区域。
+	/// 移动跨区域时 
+	/// 1.会加载或刷新出新的区域，保持显示7个区域；
+	/// 2.距离为2的区域会隐藏（以便往回走又需要重新加载）；
+	/// 3.清楚距离为3的区域
+	/// </summary>
+	/// <param name="fileName">File name.</param>
 	public void OpenMap(string fileName)
 	{
 		ClearGameObject ();
 		_map = Map.LoadMapFromXml (fileName);
 
 		if (!_map.IsEmpty ()) {
-			List<Zone> zones = _map.GetShowZones ();
-			foreach (Zone zone in zones) {
-				_openZone (zone);
+			var zoneDict = _map.GetShowZones ();
+			foreach (var zone in zoneDict.Values) {
+				_showZone (zone);
 			}
 		}
+
+//		if (_playerMng.cell == null && cell.walkable) {
+//			Debug.Log ("_playerMng init");
+//			_playerMng.cell = cell;
+//		}
 	}
 
-	public void SaveMap(string fileName)
+	public void SaveMap()
 	{
-		Debug.Log ("SaveMap fileName " + fileName);
-
-		Map.SaveMapToXml (fileName, _map);
+		Map.SaveMapToXml (_map);
 	}
 
 	protected override void OnUpdate()  
@@ -240,12 +324,11 @@ public class MapMng : BaseBehaviour {
 		{  
 			_pathIdx++;  
 			if (_pathIdx >= _path.Count) {
+				_playerMng.cell = _path[_pathIdx];
+
 				_pathIdx = 0;
 				_turn = Turn.SELECT;
-
-				_playerMng.cell.mng = null;
-				_playerMng.cell = _path[_pathIdx];
-				_playerMng.cell.mng = _playerMng;
+				_path = null;
 			}
 			return;  
 		}  

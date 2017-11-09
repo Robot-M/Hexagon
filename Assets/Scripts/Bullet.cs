@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Stone.Comp;
+using Stone.Core;
 using Stone.Pool;
 
 public class Bullet : Pooled_BehaviourUnit 

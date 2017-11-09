@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.EventSystems;
-using Stone.Comp;
-using Stone.Hex;
+using Stone.Core;
 
 public class EditMapMng : BaseBehaviour {
 
@@ -178,8 +177,8 @@ public class EditMapMng : BaseBehaviour {
 		_isMap = true;
 		ClearGameObject ();
 		if (!_map.IsEmpty ()) {
-			List<Zone> zones = _map.GetShowZones ();
-			foreach (Zone zone in zones) {
+			var zoneDict = _map.GetShowZones ();
+			foreach (var zone in zoneDict.Values) {
 				_openZone (zone);
 			}
 		}
@@ -243,7 +242,7 @@ public class EditMapMng : BaseBehaviour {
 	{
 		Debug.Log ("SaveMap fileName " + fileName);
 		
-		Map.SaveMapToXml (fileName, _map);
+		Map.SaveMapToXml (_map, fileName);
 	}
 
 	protected override void OnUpdate()  

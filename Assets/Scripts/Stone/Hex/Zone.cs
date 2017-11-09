@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
-using Stone.Comp;
 
-namespace Stone.Hex  
+namespace Stone.Core  
 {
 	public class Zone
 	{

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Stone.Util
+namespace Stone.Core
 {
 	public static class Debuger
 	{

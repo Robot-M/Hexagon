@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Stone.Hex
+namespace Stone.Core
 {
 	public class AStar
 	{
