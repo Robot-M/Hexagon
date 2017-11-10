@@ -29,6 +29,8 @@ namespace Stone.Core
 			player.hpmax = 100;
 			player.atk = 10;
 			player.atkRange = 1;
+			player.priority = 1;
+			player.moveRange = 1;
 
 			SavePlayerToXml (player);
 			return player;

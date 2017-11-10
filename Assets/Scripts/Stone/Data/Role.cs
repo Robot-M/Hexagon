@@ -32,6 +32,10 @@ namespace Stone.Core
 		public int atk;
 		// 攻击距离
 		public int atkRange;
+		// 行动优先值
+		public int priority;
+		// 移动距离
+		public int moveRange;
 
 	}
 }
