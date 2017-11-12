@@ -26,6 +26,8 @@ public class PlayerMng : BaseBehaviour {
 		} 
 	}
 
+	private bool _isCellInit;
+
 	private Player _data;
 	public Player data {
 		get { return _data; } 
@@ -51,6 +53,11 @@ public class PlayerMng : BaseBehaviour {
 
 	private void _onCellChange()
 	{
+		// 第一次初始化不发事件
+		if (!_isCellInit) {
+			_isCellInit = true;
+			return;
+		}
 		if (OnCellChange != null) {
 			OnCellChange (this, EventArgs.Empty);
 		}

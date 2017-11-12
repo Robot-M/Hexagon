@@ -41,6 +41,11 @@ namespace Stone.Core
 			return key.GetHashCode();
 		}
 
+		public override string ToString()
+		{
+			return "hex_" + q + "_" + r;
+		}
+
 		static public bool operator==(Hex a, Hex b)
 		{
 			return a.Equals(b);

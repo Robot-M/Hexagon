@@ -14,6 +14,8 @@ namespace Stone.Core
 
 		public Hex centerHex;
 
+		public string map;
+
 		[XmlIgnore]
 		public bool isDirty = false;
 
@@ -25,6 +27,8 @@ namespace Stone.Core
 			player.version = 1;
 			player.level = 1;
 			player.exp = 0;
+			player.map = "map_1";
+
 			player.hp = 100;
 			player.hpmax = 100;
 			player.atk = 10;
@@ -32,6 +36,7 @@ namespace Stone.Core
 			player.priority = 1;
 			player.moveRange = 1;
 
+			player.isDirty = true;
 			SavePlayerToXml (player);
 			return player;
 		}

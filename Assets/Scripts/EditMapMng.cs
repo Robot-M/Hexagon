@@ -8,17 +8,7 @@ using Stone.Core;
 
 public class EditMapMng : BaseBehaviour {
 
-	private enum Turn
-	{
-		SELECT,
-		MOVE,
-		ATTACK
-	}
-
 	public GameObject m_cellPf;
-	public Transform m_playerTf;
-
-	private PlayerMng _playerMng;
 
 	// hex size
 	public int m_sizeX = 1;
@@ -39,9 +29,6 @@ public class EditMapMng : BaseBehaviour {
 		get { return _map; } 
 	}
 
-	// 地图上所有显示的元素集合
-	private Dictionary<Cell, GameObject> _mapGoDict;
-
 	// 是否是map编辑／zone编辑
 	private bool _isMap;
 
@@ -49,18 +36,10 @@ public class EditMapMng : BaseBehaviour {
 	private List<string> _pfNames;
 	private List<string> _zoneNames;
 
-	// 循环，移动
-	private Turn _turn;
-	private List<Cell> _path;
-	private int _pathIdx;
-	private int _speed = 5;
-	private float _minDistance = 0.1f;
-
 	EventSystem _eventSystem;
 
 	protected override void OnInitFirst()  
 	{  
-		_turn = Turn.SELECT;
 		_eventSystem = FindObjectOfType<EventSystem> ();
 
 		_layout = new Layout (Layout.pointy, new Point(m_sizeX, m_sizeY), new Point(0,0));
@@ -69,18 +48,15 @@ public class EditMapMng : BaseBehaviour {
 		_zoneNames = FileUtilEx.GetFileNames(Res.ZonePath, Res.ConfExt);
 
 		_random = new System.Random (unchecked((int)DateTime.Now.Ticks));
-
-		_mapGoDict = new Dictionary<Cell, GameObject> ();
 	}  
 
 	protected override void OnInitSecond()
 	{  
-		_playerMng = m_playerTf.GetComponent<PlayerMng> ();
+		
 	}
 
 	public void ClearGameObject()
 	{
-		_mapGoDict.Clear ();
 		for (int i = 0; i < m_transform.childCount; i++) {  
 			Destroy (m_transform.GetChild (i).gameObject);  
 		}
@@ -109,14 +85,6 @@ public class EditMapMng : BaseBehaviour {
 			CellMng mng = go.GetComponent<CellMng> ();
 			mng.data = cell;
 			mng.OnDataChange += _handleCellDataChange;
-
-			_mapGoDict.Add (cell, go);
-
-			if (_playerMng.cell == null && cell.walkable) {
-				Debug.Log ("_playerMng init");
-				_playerMng.cell = cell;
-				cell.mng = _playerMng;
-			}
 		}
 	}
 
@@ -247,84 +215,12 @@ public class EditMapMng : BaseBehaviour {
 
 	protected override void OnUpdate()  
 	{  
-		if (_turn == Turn.SELECT) {
-			if (Input.GetMouseButtonUp (0)) {
-				_handleInput ();
-			}
-		}
+		
 	}
 
 	public void FixedUpdate()
 	{
-		if (_turn == Turn.MOVE) {
-			_handleMove ();
-		}
-	}
-
-	private void _handleInput()
-	{
-		// Ignore any input while the mouse is over a UI element
-		if (_eventSystem.IsPointerOverGameObject()) {
-			return;
-		}
-
-		Debug.Log ("_handleInput");
-
-		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		RaycastHit hit;
-		if (Physics.Raycast(ray, out hit)) {
-			Transform trans = hit.transform;
-			CellMng mng = trans.GetComponent<CellMng>();
-			if (mng == null) {
-				return;
-			}
-			Cell cell = mng.data;
-
-			Debug.Log ("hit cell " + cell.realName);
-
-			Debug.Log ("cell.walkable " + cell.walkable);
-			Debug.Log ("cell.mng " + (cell.mng == null));
-
-			if (cell.walkable && cell.mng == null) {
-				Debug.Log ("find path ");
-				_path = AStar.search (_map, _playerMng.cell, cell);
-				if (_path.Count > 0) {
-					Debug.Log ("_path Count " + _path.Count);
-					_turn = Turn.MOVE;
-				}
-			}
-		}
-	}
-
-	private void _handleMove()
-	{
-		if (_path == null || _path.Count == 0) {
-			_turn = Turn.SELECT;
-			return;
-		}
-
-		//Direction to the next waypoint  
-		Point point = _path[_pathIdx].point;
-		Vector3 tar = new Vector3 ((float)point.x, m_playerTf.position.y, (float)point.y);
-		Vector3 dir = (tar - m_playerTf.position).normalized;  
-		dir *= _speed * Time.fixedDeltaTime;  
-		m_playerTf.position += dir;
-
-		//Check if we are close enough to the next waypoint  
-		//If we are, proceed to follow the next waypoint  
-		if (Vector3.Distance(m_playerTf.position, tar) < _minDistance)  
-		{  
-			_pathIdx++;  
-			if (_pathIdx >= _path.Count) {
-				_pathIdx = 0;
-				_turn = Turn.SELECT;
-
-				_playerMng.cell.mng = null;
-				_playerMng.cell = _path[_pathIdx];
-				_playerMng.cell.mng = _playerMng;
-			}
-			return;  
-		}  
+		
 	}
 
 }

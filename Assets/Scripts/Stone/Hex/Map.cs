@@ -237,9 +237,9 @@ namespace Stone.Core
 			addHexs.Add (curHex + direct_2 + direct);
 
 			removeHexs = new List<Hex> ();
-			foreach (Hex hex in addHexs) {
-				removeHexs.Add(hex - direct * 2);
-			}
+			removeHexs.Add (curHex - direct);
+			removeHexs.Add (addHexs[1] - direct * 2);
+			removeHexs.Add (addHexs[2] - direct * 2);
 
 			curHex = newHex;
 

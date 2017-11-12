@@ -44,6 +44,11 @@ namespace Stone.Core
 		/// <param name="distance">攻击距离</param>
 		public static List<Cell> search(Map map, Cell start, Cell goal, int max=64, int distance=0)
 		{
+			if (start.Distance (goal) <= distance) {
+				// 在范围内就不需要寻找了
+				return new List<Cell> ();
+			}
+
 			max += distance;
 
 			Dictionary<Cell, Cell> cameFrom = new Dictionary<Cell, Cell>();
@@ -57,7 +62,7 @@ namespace Stone.Core
 				if(current.Distance (goal) <= distance) {
 					int length = 0;
 					gScore.TryGetValue(current, out length);
-					return generatePath(cameFrom, current, length+1);
+					return generatePath(cameFrom, current, length);
 				}
 				fScore.Remove(current);
 

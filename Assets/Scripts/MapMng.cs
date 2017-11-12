@@ -59,9 +59,12 @@ public class MapMng : BaseBehaviour {
 	protected override void OnInitSecond()
 	{  
 		_playerMng = m_playerTf.GetComponent<PlayerMng> ();
-		_playerMng.data = Player.CreatePlayer ("无尽骑士", 1);
+		Player player = Player.CreatePlayer ("无尽骑士", 1);
+		_playerMng.data = player;
 		_playerMng.OnDataChange += _handlePlayerDataChange;
 		_playerMng.OnCellChange += _handlePlayerCellChange;
+
+		OpenMap (player.map);
 	}
 
 	// 清除map上的对象
@@ -88,15 +91,19 @@ public class MapMng : BaseBehaviour {
 		PlayerMng mng = (PlayerMng)sender;
 		Cell cell = mng.cell;
 		// 区域改变，刷新新区域
-		if (cell != null && cell.realHex != _map.curHex) {
+		if (cell != null && cell.zoneHex != _map.curHex) {
 			List<Hex> addHexs; 
-			List<Hex> removeHexs; 
+			List<Hex> hideHexs; 
 
-			_map.ChangeCurHex (cell.realHex, out addHexs, out removeHexs);
+			Debug.Log ("PlayerCellChange old Hex " + _map.curHex);
+			Debug.Log ("PlayerCellChange new Hex " + cell.zoneHex);
+
+			_map.ChangeCurHex (cell.zoneHex, out addHexs, out hideHexs);
 
 			// 添加距离为1的zone
 			bool needSave = false;
 			foreach (Hex hex in addHexs) {
+				Debug.Log ("PlayerCellChange add Hex " + hex);
 				var zone = _map.GetZone (hex);
 				if (zone == null) {
 					zone = _getRandomZone ();
@@ -111,13 +118,15 @@ public class MapMng : BaseBehaviour {
 			}
 
 			// 隐藏距离为2的zone
-			foreach (Hex hex in removeHexs) {
+			foreach (Hex hex in hideHexs) {
+				Debug.Log ("PlayerCellChange hide Hex " + hex);
 				_hideZone (hex);
 			}
 
 			// 移除距离为3的zone
 			foreach (Hex hex in _zoneGoDict.Keys) {
 				if (hex.Distance (_map.curHex) >= 3) {
+					Debug.Log ("PlayerCellChange remove Hex " + hex);
 					_removeZone (hex);
 				}
 			}
@@ -301,9 +310,7 @@ public class MapMng : BaseBehaviour {
 			Cell cell = mng.data;
 
 			Debug.Log ("hit cell " + cell.realName);
-
 			Debug.Log ("cell.walkable " + cell.walkable);
-			Debug.Log ("cell.mng " + (cell.mng == null));
 
 			if (cell.walkable && cell.mng == null) {
 				Debug.Log ("find path ");
@@ -318,7 +325,12 @@ public class MapMng : BaseBehaviour {
 
 	private void _handleMove()
 	{
-		if (_path == null || _path.Count == 0) {
+		if (_path == null ) {
+			_turn = Turn.SELECT;
+			return;
+		}
+
+		if(_path.Count == 0){
 			_turn = Turn.SELECT;
 			return;
 		}
@@ -336,7 +348,7 @@ public class MapMng : BaseBehaviour {
 		{  
 			_pathIdx++;  
 			if (_pathIdx >= _path.Count) {
-				_playerMng.cell = _path[_pathIdx];
+				_playerMng.cell = _path[_pathIdx-1];
 
 				_pathIdx = 0;
 				_turn = Turn.SELECT;
