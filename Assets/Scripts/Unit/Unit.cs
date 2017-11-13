@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine.EventSystems;
 using Stone.Core;
 
-public class PlayerMng : BaseBehaviour {
+public class Unit : BaseBehaviour {
 
 	private Cell _cell;
 	public Cell cell {
@@ -21,15 +21,15 @@ public class PlayerMng : BaseBehaviour {
 					_cell.mng = this;
 					transform.position = new Vector3 ((float)_cell.point.x, transform.position.y, (float)_cell.point.y);
 				}
-				_onCellChange ();
+				_cellChange ();
 			}
 		} 
 	}
 
 	private bool _isCellInit;
 
-	private Player _data;
-	public Player data {
+	private Role _data;
+	public Role data {
 		get { return _data; } 
 		set { 
 			_data = value;
@@ -51,7 +51,7 @@ public class PlayerMng : BaseBehaviour {
 
 	}
 
-	private void _onCellChange()
+	private void _cellChange()
 	{
 		// 第一次初始化不发事件
 		if (!_isCellInit) {
@@ -64,7 +64,7 @@ public class PlayerMng : BaseBehaviour {
 	}
 
 	protected override void OnUpdate()
-	{
+	{  
 
 	}
 }

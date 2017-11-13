@@ -228,8 +228,8 @@ public class MapMng : BaseBehaviour {
 			zone = Zone.GetRandomZone (new Hex(), _map.radius);
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
-				cell.pfName = _getRandomPf ();
-				cell.walkable = _random.Next (10) < 8;
+				cell.groundPfName = _getRandomPf ();
+				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.REMOVE;
 			}
 		}
 		zone.isDirty = true;
@@ -262,7 +262,7 @@ public class MapMng : BaseBehaviour {
 		Zone curZone = _map.GetCurZone();
 		for(int i = 0; i < curZone.count; i++){
 			Cell cell = curZone.cells[i];
-			if(cell.walkable){
+			if(cell.IsWalkable()){
 				_playerMng.cell = cell;
 				break;
 			}
@@ -310,9 +310,9 @@ public class MapMng : BaseBehaviour {
 			Cell cell = mng.data;
 
 			Debug.Log ("hit cell " + cell.realName);
-			Debug.Log ("cell.walkable " + cell.walkable);
+			Debug.Log ("cell.walkable " + cell.IsWalkable());
 
-			if (cell.walkable && cell.mng == null) {
+			if (cell.IsWalkable()) {
 				Debug.Log ("find path ");
 				_path = AStar.search (_map, _playerMng.cell, cell);
 				if (_path.Count > 0) {

@@ -64,7 +64,7 @@ namespace Stone.Core
 				int r2 = Math.Min (radius, -q + radius);
 				for (int r = r1; r <= r2; r++) {
 					Hex cHex = new Hex (q, r, -q - r);
-					Cell cell = new Cell (hex, cHex, true);
+					Cell cell = new Cell (hex, cHex);
 					cells.Add (cell);
 				}
 			}

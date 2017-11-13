@@ -9,6 +9,7 @@ using Stone.Core;
 public class EditMapMng : BaseBehaviour {
 
 	public GameObject m_cellPf;
+	public GameObject m_placePf;
 
 	// hex size
 	public int m_sizeX = 1;
@@ -36,11 +37,11 @@ public class EditMapMng : BaseBehaviour {
 	private List<string> _pfNames;
 	private List<string> _zoneNames;
 
-	EventSystem _eventSystem;
+//	EventSystem _eventSystem;
 
 	protected override void OnInitFirst()  
 	{  
-		_eventSystem = FindObjectOfType<EventSystem> ();
+//		_eventSystem = FindObjectOfType<EventSystem> ();
 
 		_layout = new Layout (Layout.pointy, new Point(m_sizeX, m_sizeY), new Point(0,0));
 
@@ -188,8 +189,8 @@ public class EditMapMng : BaseBehaviour {
 			zone = Zone.GetRandomZone (new Hex(), m_zoneRadius);
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
-				cell.pfName = _getRandomPf ();
-				cell.walkable = _random.Next (10) < 8;
+				cell.groundPfName = _getRandomPf ();
+				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.REMOVE;
 			}
 		}
 		zone.isDirty = true;
@@ -215,12 +216,55 @@ public class EditMapMng : BaseBehaviour {
 
 	protected override void OnUpdate()  
 	{  
-		
+		//鼠标 左键添加 右键移除
+		if (Input.GetMouseButton (0)) {
+			PlaceObject ();
+		}
+		if (Input.GetMouseButton (1)) {
+			RemoveObject ();
+		}
 	}
 
 	public void FixedUpdate()
 	{
 		
+	}
+
+	//设置障碍物
+	public void PlaceObject ()
+	{
+		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+		RaycastHit hit;
+
+		// Figure out where the ground is
+		if (Physics.Raycast (ray, out hit, Mathf.Infinity)) {
+
+			if (hit.transform.gameObject.tag != "Ground")
+				return;
+			//获取放置面的坐标
+			Vector3 p = hit.point;
+			//获取 传入的坐标点 获取最近的 可行走路径点坐标
+			// var node = AstarPath.active.GetNearest(p, NNConstraint.None).node;
+
+//			GameObject obj = GameObject.Instantiate (go, p, go.transform.rotation) as GameObject;
+//			obj.transform.SetParent (hit.collider.gameObject.transform.parent.gameObject.transform, true);
+		}
+	}
+
+	public void RemoveObject ()
+	{
+		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+		RaycastHit hit;
+
+		// Check what object is under the mouse cursor
+		if (Physics.Raycast (ray, out hit, Mathf.Infinity)) {
+			// Ignore ground and triggers
+			if (hit.collider.isTrigger || hit.transform.gameObject.tag != "Obstacle")
+				return;
+			//TODO  清除物体的父级
+
+			Destroy (hit.collider.gameObject.transform.parent.gameObject);
+		}
 	}
 
 }

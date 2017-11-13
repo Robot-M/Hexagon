@@ -67,7 +67,7 @@ namespace Stone.Core
 				fScore.Remove(current);
 
 				foreach(Cell neighbor in map.GetCellNeighbors(current)) {
-					if(!neighbor.walkable) {
+					if(!neighbor.IsWalkable()) {
 						continue;
 					}
 					if(gScore.ContainsKey(neighbor) && !fScore.ContainsKey(neighbor)) {
