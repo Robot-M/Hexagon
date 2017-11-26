@@ -46,6 +46,8 @@ namespace Stone.Core
 		// 触发效果 id
 		public int triggerId;
 
+		// 是否障碍物已经满了，不能通过地图编辑再插入
+		public bool isFullObst = false;
 		// 障碍物列表（多个）
 		public List<string> obstList;
 		// 障碍物位置列表（多个）
@@ -85,19 +87,19 @@ namespace Stone.Core
 			} 
 		}
 
-		private BaseBehaviour _mng;
+		private Unit _unit;
 		[XmlIgnore]
-		public BaseBehaviour mng { 
-			get { return _mng; } 
+		public Unit unit { 
+			get { return _unit; } 
 			set { 
-				_mng = value;
+				_unit = value;
 			} 
 		}
 
 		// 是否可以行走，障碍物／有单位 都不能行走
 		public bool IsWalkable()
 		{
-			return this.state == State.WALK && _mng == null;
+			return this.state == State.WALK && _unit == null;
 		}
 
 		public bool IsObstacle()
@@ -105,17 +107,27 @@ namespace Stone.Core
 			return this.state != State.WALK;
 		}
 
-		public void AddObstacle(GameObject go, Vector3 pos)
+		public bool IsFullObst()
+		{
+			if (IsWalkable ()) {
+				return false;
+			} else {
+				return isFullObst;
+			}
+		}
+
+		public void AddObstacle(string pfName, Vector3 pos)
+		{
+			state = State.REMOVE;
+
+		}
+
+		public void RemoveObstacle(string pfName, Vector3 pos)
 		{
 
 		}
 
-		public void RemoveObstacle(GameObject go, Vector3 pos)
-		{
-
-		}
-
-		public void UpdateObstacle(GameObject go, Vector3 pos)
+		public void UpdateObstacle(string pfName, Vector3 pos)
 		{
 
 		}

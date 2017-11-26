@@ -190,6 +190,14 @@ namespace Stone.Core
 			return _showZoneDict;
 		}
 
+		public Cell GetShowCell(Vector3 pos)
+		{
+			Hex hex = Layout.PixelToHex (layout, new Point(pos.x, pos.z));
+			Cell cell;
+			_showCellDict.TryGetValue (hex, out cell);
+			return cell;
+		}
+
 		public List<Cell> GetCellNeighbors(Cell cell)
 		{
 			List<Cell> results = new List<Cell> ();

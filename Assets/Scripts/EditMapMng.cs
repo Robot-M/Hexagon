@@ -243,11 +243,18 @@ public class EditMapMng : BaseBehaviour {
 				return;
 			//获取放置面的坐标
 			Vector3 p = hit.point;
-			//获取 传入的坐标点 获取最近的 可行走路径点坐标
-			// var node = AstarPath.active.GetNearest(p, NNConstraint.None).node;
 
-//			GameObject obj = GameObject.Instantiate (go, p, go.transform.rotation) as GameObject;
-//			obj.transform.SetParent (hit.collider.gameObject.transform.parent.gameObject.transform, true);
+			Transform parent = hit.collider.transform.parent;
+			CellMng mng = parent.GetComponent<CellMng>();
+			Cell cell = mng.data;
+			Vector3 lpos = p - parent.position;
+			//障碍物没满，可以插入障碍物
+			if (!cell.IsFullObst ()) {
+				GameObject obj = GameObject.Instantiate (m_placePf, p, m_placePf.transform.rotation) as GameObject;
+				obj.transform.parent = parent;
+				obj.transform.localPosition = lpos;
+				mng.AddObstacle (obj, lpos);
+			}
 		}
 	}
 
@@ -262,8 +269,11 @@ public class EditMapMng : BaseBehaviour {
 			if (hit.collider.isTrigger || hit.transform.gameObject.tag != "Obstacle")
 				return;
 			//TODO  清除物体的父级
+			Transform hitTrans = hit.collider.transform;
+			CellMng mng = hitTrans.parent.GetComponent<CellMng>();
+			mng.RemoveObstacle (hitTrans.gameObject, hitTrans.localPosition);
 
-			Destroy (hit.collider.gameObject.transform.parent.gameObject);
+			Destroy (hitTrans.gameObject);
 		}
 	}
 

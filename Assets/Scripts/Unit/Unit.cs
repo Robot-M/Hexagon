@@ -14,11 +14,11 @@ public class Unit : BaseBehaviour {
 		set { 
 			if(_cell != value){
 				if (_cell != null) {
-					_cell.mng = null;
+					_cell.unit = null;
 				}
 				_cell = value;
 				if (_cell != null) {
-					_cell.mng = this;
+					_cell.unit = this;
 					transform.position = new Vector3 ((float)_cell.point.x, transform.position.y, (float)_cell.point.y);
 				}
 				_cellChange ();

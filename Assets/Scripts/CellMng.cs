@@ -125,6 +125,25 @@ public class CellMng : BaseBehaviour {
 
 #if UNITY_EDITOR
 
+	public void AddObstacle(GameObject go, Vector3 pos)
+	{
+		string pfName = AssetDatabase.GetAssetPath (go);
+		data.AddObstacle (pfName, pos);
+		_onDataChange ();
+	}
+
+	public void RemoveObstacle(GameObject go, Vector3 pos)
+	{
+		string pfName = AssetDatabase.GetAssetPath (go);
+		data.RemoveObstacle (pfName, pos);
+		_onDataChange ();
+	}
+
+	public void UpdateObstacle(GameObject go, Vector3 pos)
+	{
+
+	}
+
 	void Reset()
 	{
 		Debug.Log("脚本添加事件");
