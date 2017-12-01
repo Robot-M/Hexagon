@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Stone.Hex
+namespace Stone.Core
 {
 	public class AStar
 	{
@@ -44,6 +44,11 @@ namespace Stone.Hex
 		/// <param name="distance">攻击距离</param>
 		public static List<Cell> search(Map map, Cell start, Cell goal, int max=64, int distance=0)
 		{
+			if (start.Distance (goal) <= distance) {
+				// 在范围内就不需要寻找了
+				return new List<Cell> ();
+			}
+
 			max += distance;
 
 			Dictionary<Cell, Cell> cameFrom = new Dictionary<Cell, Cell>();
@@ -57,12 +62,12 @@ namespace Stone.Hex
 				if(current.Distance (goal) <= distance) {
 					int length = 0;
 					gScore.TryGetValue(current, out length);
-					return generatePath(cameFrom, current, length+1);
+					return generatePath(cameFrom, current, length);
 				}
 				fScore.Remove(current);
 
 				foreach(Cell neighbor in map.GetCellNeighbors(current)) {
-					if(!neighbor.walkable) {
+					if(!neighbor.IsWalkable()) {
 						continue;
 					}
 					if(gScore.ContainsKey(neighbor) && !fScore.ContainsKey(neighbor)) {

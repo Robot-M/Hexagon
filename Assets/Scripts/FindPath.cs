@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using Stone.Util;
-using Stone.Comp;
+using Stone.Core;
 
 public class FindPath : BaseBehaviour {
 	

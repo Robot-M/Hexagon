@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
-using Stone.Comp;
 
-namespace Stone.Hex  
+namespace Stone.Core  
 {
 	public class Map
 	{
@@ -28,8 +27,8 @@ namespace Stone.Hex
 
 		private List<Hex> _spiralHexs;
 
-		private List<Zone> _showZones;
-		private Dictionary<string, Cell> _showCells;
+		private Dictionary<Hex, Zone> _showZoneDict;
+		private Dictionary<Hex, Cell> _showCellDict;
 
 		public Map()
 		{
@@ -48,8 +47,8 @@ namespace Stone.Hex
 			this.zoneNameDict = new SerializableDictionary<string, string> ();
 			this._zoneDict = new Dictionary<string, Zone> ();
 
-			this._showZones = new List<Zone> ();
-			this._showCells = new Dictionary<string, Cell> ();
+			this._showZoneDict = new Dictionary<Hex, Zone> ();
+			this._showCellDict = new Dictionary<Hex, Cell> ();
 		}
 
 		public static Map LoadMapFromXml(string fileName)
@@ -80,12 +79,18 @@ namespace Stone.Hex
 		/// </summary>
 		/// <param name="fileName">File name.</param>
 		/// <param name="map">Map.</param>
-		public static void SaveMapToXml(string fileName, Map map)
+		public static void SaveMapToXml(Map map, string fileName=null)
 		{
-			string path = Res.GetMapPath (fileName);
-			FileUtilEx.CreateDirectory (path);
+			string path;
+			if (fileName != null) {
+				path = Res.GetMapPath (fileName);
+				FileUtilEx.CreateDirectory (path);
+				map.path = path;
+			} else {
+				path = map.path;
+			}
 
-			map.path = path;
+			Debug.Assert (path != null);
 
 			string mapName = Res.GetMapConfPath (path);
 			string dataStr = XmlUtil.SerializeObject (map, typeof(Map));
@@ -167,9 +172,9 @@ namespace Stone.Hex
 			return zone;
 		}
 
-		public List<Zone> GetShowZones()
+		public Dictionary<Hex, Zone> GetShowZones()
 		{
-			if (_showZones.Count == 0) {
+			if (_showZoneDict.Count == 0) {
 				Zone zone = GetZone (curHex);
 				if (zone != null) {
 					addShowZone (zone);
@@ -182,7 +187,15 @@ namespace Stone.Hex
 					}
 				}
 			}
-			return _showZones;
+			return _showZoneDict;
+		}
+
+		public Cell GetShowCell(Vector3 pos)
+		{
+			Hex hex = Layout.PixelToHex (layout, new Point(pos.x, pos.z));
+			Cell cell;
+			_showCellDict.TryGetValue (hex, out cell);
+			return cell;
 		}
 
 		public List<Cell> GetCellNeighbors(Cell cell)
@@ -191,9 +204,8 @@ namespace Stone.Hex
 			Hex hex = cell.realHex;
 			for (int i = 0; i < 6; i++) {
 				Hex nearHex = Hex.Neighbor (hex, i);
-				string key = "hex_" + nearHex.q + "_" + nearHex.r;
 				Cell nearCell;
-				_showCells.TryGetValue (key, out nearCell);
+				_showCellDict.TryGetValue (nearHex, out nearCell);
 				if (nearCell != null) {
 					results.Add (nearCell);
 				}
@@ -203,21 +215,54 @@ namespace Stone.Hex
 
 		private void addShowZone(Zone zone)
 		{
-			_showZones.Add (zone);
+			_showZoneDict.Add (zone.hex, zone);
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
 				cell.realHex = cell.hex + zone.centerHex;
 				cell.point = Layout.HexToPixel (layout, cell.realHex);
-				_showCells.Add (cell.realName, cell);
+				_showCellDict.Add (cell.realHex, cell);
 			}
 		}
 
 		private void removeShowZone(Zone zone)
 		{
-			_showZones.Remove (zone);
+			_showZoneDict.Remove (zone.hex);
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
-				_showCells.Remove (cell.realName);
+				_showCellDict.Remove (cell.realHex);
+			}
+		}
+
+		public void ChangeCurHex(Hex newHex, out List<Hex> addHexs, out List<Hex> removeHexs)
+		{
+			Hex direct = newHex - curHex;
+			Hex direct_1 = Hex.RotateLeft (direct);
+			Hex direct_2 = Hex.RotateRight (direct);
+
+			addHexs = new List<Hex> ();
+			addHexs.Add (newHex + direct);
+			addHexs.Add (curHex + direct_1 + direct);
+			addHexs.Add (curHex + direct_2 + direct);
+
+			removeHexs = new List<Hex> ();
+			removeHexs.Add (curHex - direct);
+			removeHexs.Add (addHexs[1] - direct * 2);
+			removeHexs.Add (addHexs[2] - direct * 2);
+
+			curHex = newHex;
+
+			foreach (Hex hex in addHexs) {
+				var zone = GetZone (hex);
+				if (zone != null) {
+					removeShowZone (zone);
+				}
+			}
+
+			foreach (Hex hex in addHexs) {
+				var zone = GetZone (hex);
+				if (zone != null) {
+					addShowZone (zone);
+				}
 			}
 		}
 

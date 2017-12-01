@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Stone.Comp
+namespace Stone.Core
 {
 	/// <summary>
 	/// 单例单元管理器

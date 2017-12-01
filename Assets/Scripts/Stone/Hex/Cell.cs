@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
-using Stone.Comp;
 
-namespace Stone.Hex  
+namespace Stone.Core  
 {
 	public class Cell
 	{
@@ -13,19 +12,53 @@ namespace Stone.Hex
 			
 		}
 
-		public Cell(Hex zoneHex, Hex hex, bool walkable, string pfName="", string triggerPfName="")
+		public enum State
+		{
+			WALK,   //可行走
+			REMOVE,	//可移除的障碍物
+			STATIC  //不可移除的障碍物
+		}
+
+		public enum ObstState
+		{
+			SINGLE,   	//单格障碍物
+			PARENT,		//多格障碍物的主体
+			CHILD		//多格障碍物的子体
+		}
+
+		public Cell(Hex zoneHex, Hex hex)
 		{
 			this.zoneHex = zoneHex;
 			this.hex = hex;
-			this.walkable = walkable;
-			this.pfName = pfName;
-			this.triggerPfName = triggerPfName;
 		}
+		// 区域Hex
 		public Hex zoneHex;
+		// 区域内的Hex
 		public Hex hex;
-		public bool walkable;
-		public string pfName;
+
+		// 可行走／不可行走
+		public State state = State.WALK;
+
+		// 地板pf
+		public string groundPfName;
+		// 触发器pf
 		public string triggerPfName;
+		// 触发效果 id
+		public int triggerId;
+
+		// 是否障碍物已经满了，不能通过地图编辑再插入
+		public bool isFullObst = false;
+		// 障碍物列表（多个）
+		public List<string> obstList;
+		// 障碍物位置列表（多个）
+		public List<Vector3> obstPosList;
+
+		// 处理占多格的障碍物
+		public ObstState obstState = ObstState.SINGLE;
+		// 该格的障碍物是其他格的一部分，主障碍物的相对位置
+		public Hex mainHex;
+		// 该格的障碍物是主障碍物，其他部分在的相对位置
+		public List<Hex> partHexs;
 
 		private Hex _realHex;	//真实地图的hex
 		[XmlIgnore]
@@ -54,13 +87,49 @@ namespace Stone.Hex
 			} 
 		}
 
-		private BaseBehaviour _mng;
+		private Unit _unit;
 		[XmlIgnore]
-		public BaseBehaviour mng { 
-			get { return _mng; } 
+		public Unit unit { 
+			get { return _unit; } 
 			set { 
-				_mng = value;
+				_unit = value;
 			} 
+		}
+
+		// 是否可以行走，障碍物／有单位 都不能行走
+		public bool IsWalkable()
+		{
+			return this.state == State.WALK && _unit == null;
+		}
+
+		public bool IsObstacle()
+		{
+			return this.state != State.WALK;
+		}
+
+		public bool IsFullObst()
+		{
+			if (IsWalkable ()) {
+				return false;
+			} else {
+				return isFullObst;
+			}
+		}
+
+		public void AddObstacle(string pfName, Vector3 pos)
+		{
+			state = State.REMOVE;
+
+		}
+
+		public void RemoveObstacle(string pfName, Vector3 pos)
+		{
+
+		}
+
+		public void UpdateObstacle(string pfName, Vector3 pos)
+		{
+
 		}
 
 		public void Dump(string msg="")
@@ -68,8 +137,8 @@ namespace Stone.Hex
 			Debug.Log (msg);
 			Debug.Log ("zoneHex q = " + zoneHex.q + " r = " + zoneHex.r + " s = " + zoneHex.s);
 			Debug.Log ("hex q = " + hex.q + " r = " + hex.r + " s = " + hex.s);
-			Debug.Log ("walkable " + walkable.ToString());
-			Debug.Log ("pfName " + pfName);
+			Debug.Log ("state " + state);
+			Debug.Log ("groundPfName " + groundPfName);
 			Debug.Log ("triggerPfName " + triggerPfName);
 		}
 

@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using UnityEngine.EventSystems;
-using Stone.Comp;
-using Stone.Hex;
+using Stone.Core;
 using System.Xml.Serialization;
 
 public class MainMenu : BaseBehaviour {

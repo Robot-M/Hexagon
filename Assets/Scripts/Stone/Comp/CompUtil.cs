@@ -1,7 +1,7 @@
 ﻿using System;  
 using UnityEngine;  
 
-namespace Stone.Comp  
+namespace Stone.Core  
 {  
 	public static class CompUtil  
 	{  

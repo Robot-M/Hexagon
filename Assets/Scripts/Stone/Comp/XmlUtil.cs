@@ -6,7 +6,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace Stone.Comp
+namespace Stone.Core
 {
 	public class XmlUtil
 	{

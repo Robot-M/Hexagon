@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 
 
-namespace Stone.Comp
+namespace Stone.Core
 {
 	/// <summary>  
 	/// 标题：支持 XML 序列化的 Dictionary  

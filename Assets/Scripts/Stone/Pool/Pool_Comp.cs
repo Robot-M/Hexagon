@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using Stone.Comp;
+using Stone.Core;
 
 namespace Stone.Pool
 {
