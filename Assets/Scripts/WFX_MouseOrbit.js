@@ -2,7 +2,7 @@ var target : Transform;
 var distance = 10.0;
 
 var xSpeed = 250.0;
-var ySpeed = 120.0;
+var ySpeed = 119.0;
 
 var yMinLimit = -20;
 var yMaxLimit = 80;
