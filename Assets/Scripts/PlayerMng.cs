@@ -13,10 +13,19 @@ public class PlayerMng : BaseBehaviour {
 	public Cell cell {
 		get { return _cell; } 
 		set { 
-			_cell = value;
-			transform.position = new Vector3((float)_cell.point.x, 1.4f, (float)_cell.point.y);
+			if(_cell != value){
+				if (_cell) {
+					_cell.mng = null;
+				}
+				_cell = value;
+				_cell.mng = this;
+				transform.position = new Vector3((float)_cell.point.x, transform.position.y, (float)_cell.point.y);
+				_onCellChange ();
+			}
 		} 
 	}
+
+	public event EventHandler OnCellChange;
 
 	protected override void OnInitFirst()  
 	{  
@@ -26,6 +35,13 @@ public class PlayerMng : BaseBehaviour {
 	protected override void OnInitSecond()
 	{  
 
+	}
+
+	private void _onCellChange()
+	{
+		if (OnCellChange != null) {
+			OnCellChange (this, EventArgs.Empty);
+		}
 	}
 
 	protected override void OnUpdate()
