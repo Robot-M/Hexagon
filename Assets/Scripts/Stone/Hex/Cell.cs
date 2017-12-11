@@ -15,15 +15,7 @@ namespace Stone.Core
 		public enum State
 		{
 			WALK,   //可行走
-			REMOVE,	//可移除的障碍物
-			STATIC  //不可移除的障碍物
-		}
-
-		public enum ObstState
-		{
-			SINGLE,   	//单格障碍物
-			PARENT,		//多格障碍物的主体
-			CHILD		//多格障碍物的子体
+			OBSTACLE,	//障碍物
 		}
 
 		public Cell(Hex zoneHex, Hex hex)
@@ -31,6 +23,7 @@ namespace Stone.Core
 			this.zoneHex = zoneHex;
 			this.hex = hex;
 		}
+
 		// 区域Hex
 		public Hex zoneHex;
 		// 区域内的Hex
@@ -46,19 +39,21 @@ namespace Stone.Core
 		// 触发效果 id
 		public int triggerId;
 
-		// 是否障碍物已经满了，不能通过地图编辑再插入
-		public bool isFullObst = false;
-		// 障碍物列表（多个）
-		public List<string> obstList;
-		// 障碍物位置列表（多个）
-		public List<Vector3> obstPosList;
+		// ===================== 障碍物 =====================
+		// 单格障碍物列表（多个）
+		public List<string> obstList = new List<string>();
+		// 单格障碍物位置列表（多个）
+		public List<Vector3> obstPosList = new List<string>();
 
-		// 处理占多格的障碍物
-		public ObstState obstState = ObstState.SINGLE;
+		// 多格障碍物
+		public string multObst;
+		// 多格障碍物位置(主障碍物才有有效值)
+		public Vector3 multObstPos;
 		// 该格的障碍物是其他格的一部分，主障碍物的相对位置
 		public Hex mainHex;
 		// 该格的障碍物是主障碍物，其他部分在的相对位置
 		public List<Hex> partHexs;
+		// ===================== 障碍物 =====================
 
 		private Hex _realHex;	//真实地图的hex
 		[XmlIgnore]
@@ -99,37 +94,54 @@ namespace Stone.Core
 		// 是否可以行走，障碍物／有单位 都不能行走
 		public bool IsWalkable()
 		{
-			return this.state == State.WALK && _unit == null;
+			return this.state == State.WALK && this._unit == null;
 		}
 
 		public bool IsObstacle()
 		{
-			return this.state != State.WALK;
+			return this.state == State.OBSTACLE;
 		}
 
-		public bool IsFullObst()
+		public void AddObstacle(string pfName, Vector3 pos, bool isMult)
 		{
-			if (IsWalkable ()) {
-				return false;
-			} else {
-				return isFullObst;
-			}
-		}
-
-		public void AddObstacle(string pfName, Vector3 pos)
-		{
-			state = State.REMOVE;
-
+			obstList.Add (pfName);
+			obstPosList.Add (pos);
+			
+			refreshState ();
 		}
 
 		public void RemoveObstacle(string pfName, Vector3 pos)
 		{
+			int index = obstPosList.FindIndex (pos);
+			if (index != -1) {
+				obstPosList.RemoveAt (index);
+				obstList.RemoveAt (index);
+			}
 
+			refreshState ();
+		}
+
+		public bool HaveObstacle(string pfName, Vector3 pos)
+		{
+			int index = obstPosList.FindIndex (pos);
+			return index != -1;
 		}
 
 		public void UpdateObstacle(string pfName, Vector3 pos)
 		{
+			int index = obstPosList.FindIndex (pos);
+			if (index != -1) {
+				obstList [index] = pfName;
+			}
+		}
 
+		private void refreshState()
+		{
+			if (obstList.Count == 0 && multObst == "") {
+				state = State.WALK;
+			} else {
+				state = State.OBSTACLE;
+			}
 		}
 
 		public void Dump(string msg="")

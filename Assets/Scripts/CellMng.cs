@@ -139,9 +139,17 @@ public class CellMng : BaseBehaviour {
 		_onDataChange ();
 	}
 
+	public bool HaveObstacle(GameObject go, Vector3 pos)
+	{
+		string pfName = AssetDatabase.GetAssetPath (go);
+		return data.HaveObstacle (pfName, pos);
+	}
+
 	public void UpdateObstacle(GameObject go, Vector3 pos)
 	{
-
+		string pfName = AssetDatabase.GetAssetPath (go);
+		data.UpdateObstacle (pfName, pos);
+		_onDataChange ();
 	}
 
 	void Reset()

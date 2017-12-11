@@ -248,13 +248,11 @@ public class EditMapMng : BaseBehaviour {
 			CellMng mng = parent.GetComponent<CellMng>();
 			Cell cell = mng.data;
 			Vector3 lpos = p - parent.position;
-			//障碍物没满，可以插入障碍物
-			if (!cell.IsFullObst ()) {
-				GameObject obj = GameObject.Instantiate (m_placePf, p, m_placePf.transform.rotation) as GameObject;
-				obj.transform.parent = parent;
-				obj.transform.localPosition = lpos;
-				mng.AddObstacle (obj, lpos);
-			}
+
+			GameObject obj = GameObject.Instantiate (m_placePf, p, m_placePf.transform.rotation) as GameObject;
+			obj.transform.parent = parent;
+			obj.transform.localPosition = lpos;
+			mng.AddObstacle (obj, lpos);
 		}
 	}
 
@@ -268,12 +266,16 @@ public class EditMapMng : BaseBehaviour {
 			// Ignore ground and triggers
 			if (hit.collider.isTrigger || hit.transform.gameObject.tag != "Obstacle")
 				return;
-			//TODO  清除物体的父级
-			Transform hitTrans = hit.collider.transform;
-			CellMng mng = hitTrans.parent.GetComponent<CellMng>();
-			mng.RemoveObstacle (hitTrans.gameObject, hitTrans.localPosition);
 
-			Destroy (hitTrans.gameObject);
+			Transform hitTrans = hit.collider.transform;
+			GameObject go = hitTrans.gameObject;
+			Vector3 lpos = hitTrans.localPosition;
+
+			CellMng mng = hitTrans.parent.GetComponent<CellMng>();
+			if (mng.HaveObstacle (go, lpos)) {
+				mng.RemoveObstacle (go, lpos);
+				Destroy (go);
+			}
 		}
 	}
 
