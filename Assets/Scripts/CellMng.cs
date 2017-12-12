@@ -13,8 +13,16 @@ public class CellMng : BaseBehaviour {
 	public GameObject m_triggerPf;
 	public int m_triggerId;
 
+	// 障碍物
+	public List<GameObject> m_obstGoList = new List<GameObject>();
+	public GameObject m_multObstGo;
+	public GameObject m_mainGo;
+	public List<GameObject> m_partGoList;
+
 	private GameObject _preGroundPf;
 	private GameObject _preTraggerPf;
+
+	private GameObject _groundGO;
 
 	private Cell _data;
 	public Cell data { 
@@ -34,9 +42,6 @@ public class CellMng : BaseBehaviour {
 	}
 	
 	public event EventHandler OnDataChange;
-
-	private GameObject _groundGO;
-	private GameObject _obstacleGO;
 
 	protected override void OnInitFirst()  
 	{  
@@ -76,22 +81,33 @@ public class CellMng : BaseBehaviour {
 
 	public void refreshCell()
 	{
-		_refreshState ();
 		_refreshGroundPf ();
+		_refreshState ();
 	}
 
 	private void _refreshState()
 	{
 		if (m_state != Cell.State.WALK) {
-			if (_obstacleGO == null) {
-				GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath (Res.ObstaclePath, typeof(GameObject));
-				_obstacleGO = Instantiate (prefab);
-				_obstacleGO.transform.parent = gameObject.transform;
-				_obstacleGO.transform.localPosition = new Vector3 (0, 0.3f, 0);
+			if (_data.obstList.Count > 0) {
+				int num = _data.obstList.Count;
+				for (int i = 0; i < num; i++) {
+					GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath (_data.obstList[i], typeof(GameObject));
+					GameObject go = Instantiate (prefab);
+					go.transform.parent = gameObject.transform;
+					go.transform.localPosition = _data.obstPosList [i];
+					m_obstGoList.Add (go);
+				}
 			}
-			_obstacleGO.SetActive (true);
-		} else if (_obstacleGO != null) {
-			_obstacleGO.SetActive(false);
+
+			if (_data.multObst != "" && _data.partHexs.Count > 0) {
+				GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath (_data.multObst, typeof(GameObject));
+				GameObject go = Instantiate (prefab);
+				go.transform.parent = gameObject.transform;
+				go.transform.localPosition = _data.multObstPos;
+				m_multObstGo = go;
+			}
+		} else {
+			
 		}
 	}
 
@@ -125,28 +141,34 @@ public class CellMng : BaseBehaviour {
 
 #if UNITY_EDITOR
 
-	public void AddObstacle(GameObject go, Vector3 pos)
+	public void AddObstacle(GameObject go)
 	{
+		m_obstGoList.Add (go);
+		Vector3 pos = go.transform.localPosition;
 		string pfName = AssetDatabase.GetAssetPath (go);
 		data.AddObstacle (pfName, pos);
 		_onDataChange ();
 	}
 
-	public void RemoveObstacle(GameObject go, Vector3 pos)
+	public void RemoveObstacle(GameObject go)
 	{
-		string pfName = AssetDatabase.GetAssetPath (go);
-		data.RemoveObstacle (pfName, pos);
-		_onDataChange ();
+		int index = m_obstGoList.FindIndex ((GameObject input) => {
+			return input == go;
+		});
+		if (index != -1) {
+			data.RemoveObstacle (index);
+			_onDataChange ();
+		}
 	}
 
-	public bool HaveObstacle(GameObject go, Vector3 pos)
+	public bool HaveObstacle(GameObject go)
 	{
-		string pfName = AssetDatabase.GetAssetPath (go);
-		return data.HaveObstacle (pfName, pos);
+		return m_obstGoList.Contains (go);
 	}
 
-	public void UpdateObstacle(GameObject go, Vector3 pos)
+	public void UpdateObstacle(GameObject go)
 	{
+		Vector3 pos = go.transform.localPosition;
 		string pfName = AssetDatabase.GetAssetPath (go);
 		data.UpdateObstacle (pfName, pos);
 		_onDataChange ();
@@ -166,6 +188,9 @@ public class CellMng : BaseBehaviour {
 			if (m_state != _data.state) {
 				Debug.Log ("m_state " + m_state.ToString ());
 				_data.state = m_state;
+				if (m_state == Cell.State.WALK) {
+					m_obstGoList.Clear ();
+				}
 				_refreshState ();
 				_onDataChange ();
 			}

@@ -190,7 +190,7 @@ public class EditMapMng : BaseBehaviour {
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
 				cell.groundPfName = _getRandomPf ();
-				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.REMOVE;
+				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.OBSTACLE;
 			}
 		}
 		zone.isDirty = true;
@@ -249,10 +249,10 @@ public class EditMapMng : BaseBehaviour {
 			Cell cell = mng.data;
 			Vector3 lpos = p - parent.position;
 
-			GameObject obj = GameObject.Instantiate (m_placePf, p, m_placePf.transform.rotation) as GameObject;
-			obj.transform.parent = parent;
-			obj.transform.localPosition = lpos;
-			mng.AddObstacle (obj, lpos);
+			GameObject go = GameObject.Instantiate (m_placePf, p, m_placePf.transform.rotation) as GameObject;
+			go.transform.parent = parent;
+			go.transform.localPosition = lpos;
+			mng.AddObstacle (go);
 		}
 	}
 
@@ -269,11 +269,10 @@ public class EditMapMng : BaseBehaviour {
 
 			Transform hitTrans = hit.collider.transform;
 			GameObject go = hitTrans.gameObject;
-			Vector3 lpos = hitTrans.localPosition;
 
 			CellMng mng = hitTrans.parent.GetComponent<CellMng>();
-			if (mng.HaveObstacle (go, lpos)) {
-				mng.RemoveObstacle (go, lpos);
+			if (mng.HaveObstacle (go)) {
+				mng.RemoveObstacle (go);
 				Destroy (go);
 			}
 		}

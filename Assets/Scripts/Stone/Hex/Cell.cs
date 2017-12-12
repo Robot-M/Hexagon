@@ -43,7 +43,7 @@ namespace Stone.Core
 		// 单格障碍物列表（多个）
 		public List<string> obstList = new List<string>();
 		// 单格障碍物位置列表（多个）
-		public List<Vector3> obstPosList = new List<string>();
+		public List<Vector3> obstPosList = new List<Vector3>();
 
 		// 多格障碍物
 		public string multObst;
@@ -102,7 +102,12 @@ namespace Stone.Core
 			return this.state == State.OBSTACLE;
 		}
 
-		public void AddObstacle(string pfName, Vector3 pos, bool isMult)
+		public bool IsMainObst()
+		{
+			return _data.multObst != "" && _data.partHexs.Count > 0
+		}
+
+		public void AddObstacle(string pfName, Vector3 pos)
 		{
 			obstList.Add (pfName);
 			obstPosList.Add (pos);
@@ -110,26 +115,19 @@ namespace Stone.Core
 			refreshState ();
 		}
 
-		public void RemoveObstacle(string pfName, Vector3 pos)
+		public void RemoveObstacle(int index)
 		{
-			int index = obstPosList.FindIndex (pos);
-			if (index != -1) {
-				obstPosList.RemoveAt (index);
-				obstList.RemoveAt (index);
-			}
+			obstPosList.RemoveAt (index);
+			obstList.RemoveAt (index);
 
 			refreshState ();
 		}
-
-		public bool HaveObstacle(string pfName, Vector3 pos)
-		{
-			int index = obstPosList.FindIndex (pos);
-			return index != -1;
-		}
-
+		
 		public void UpdateObstacle(string pfName, Vector3 pos)
 		{
-			int index = obstPosList.FindIndex (pos);
+			int index = obstPosList.FindIndex ((Vector3 vec3) => {
+				return vec3 == pos;
+			});
 			if (index != -1) {
 				obstList [index] = pfName;
 			}

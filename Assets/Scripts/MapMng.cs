@@ -229,7 +229,7 @@ public class MapMng : BaseBehaviour {
 			for (int i = 0; i < zone.count; i++) {
 				Cell cell = zone.cells [i];
 				cell.groundPfName = _getRandomPf ();
-				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.REMOVE;
+				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.OBSTACLE;
 			}
 		}
 		zone.isDirty = true;
