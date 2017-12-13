@@ -8,6 +8,13 @@ using Stone.Core;
 
 public class EditMapMng : BaseBehaviour {
 
+	public enum EditType
+	{
+		PIECE,   //块
+		ZONE,	//区域
+		MAP,	//地图
+	}
+
 	public GameObject m_cellPf;
 	public GameObject m_placePf;
 
@@ -17,8 +24,14 @@ public class EditMapMng : BaseBehaviour {
 
 	// zone radius
 	public int m_zoneRadius = 3;
+	private int _preZoneRadius = 3;
 
 	private Layout _layout;
+
+	private Piece _piece;
+	public Piece piece { 
+		get { return _piece; } 
+	}
 
 	private Zone _zone;
 	public Zone zone { 
@@ -30,12 +43,18 @@ public class EditMapMng : BaseBehaviour {
 		get { return _map; } 
 	}
 
-	// 是否是map编辑／zone编辑
-	private bool _isMap;
+	// 是否是map编辑／zone编辑／piece编辑
+	private EditType _type;
+
+	// 块名字
+	private Piece _curPiece;
+
+	private Dictionary<Hex, GameObject> _goDict;
 
 	private System.Random _random;
 	private List<string> _pfNames;
 	private List<string> _zoneNames;
+	private List<string> _pieceNames;
 
 //	EventSystem _eventSystem;
 
@@ -47,6 +66,9 @@ public class EditMapMng : BaseBehaviour {
 
 		_pfNames = FileUtilEx.GetDirs (Res.GroundPath, ".prefab");
 		_zoneNames = FileUtilEx.GetFileNames(Res.ZonePath, Res.ConfExt);
+		_pieceNames = FileUtilEx.GetFileNames(Res.PiecePath, Res.ConfExt);
+
+		_goDict = new Dictionary<Hex, GameObject> ();
 
 		_random = new System.Random (unchecked((int)DateTime.Now.Ticks));
 	}  
@@ -58,34 +80,35 @@ public class EditMapMng : BaseBehaviour {
 
 	public void ClearGameObject()
 	{
+		_goDict.Clear ();
 		for (int i = 0; i < m_transform.childCount; i++) {  
 			Destroy (m_transform.GetChild (i).gameObject);  
 		}
 	}
 
-	//===================== zone =====================
+	//===================== create cells =====================
 
-	private void _openZone(Zone zone)
+	private void _createCell(Cell cell)
 	{
-		for (int i = 0; i < zone.count; i++) {
-			Cell cell = zone.cells [i];
+		Point pt;
+		if (_type == EditType.MAP) {
+			pt = cell.point;
+		} else {
+			cell.realHex = zone.centerHex + cell.hex;
+			pt = Layout.HexToPixel (_layout, cell.realHex);
+		}
 
-			Point pt;
-			if (_isMap) {
-				pt = cell.point;
-			} else {
-				cell.realHex = zone.centerHex + cell.hex;
-				pt = Layout.HexToPixel (_layout, cell.realHex);
-			}
+		GameObject go = Instantiate (m_cellPf);
+		go.name = cell.realName;
+		go.transform.parent = m_transform;
+		go.transform.position = new Vector3((float)pt.x, 0.0f, (float)pt.y);
 
-			GameObject go = Instantiate (m_cellPf);
-			go.name = cell.realName;
-			go.transform.parent = m_transform;
-			go.transform.position = new Vector3((float)pt.x, 0.0f, (float)pt.y);
+		CellMng mng = go.GetComponent<CellMng> ();
+		mng.data = cell;
+		mng.OnDataChange += _handleCellDataChange;
 
-			CellMng mng = go.GetComponent<CellMng> ();
-			mng.data = cell;
-			mng.OnDataChange += _handleCellDataChange;
+		if (_type != EditType.MAP) {
+			_goDict.Add (cell.realHex, go);
 		}
 	}
 
@@ -93,19 +116,79 @@ public class EditMapMng : BaseBehaviour {
 	{
 		CellMng mng = (CellMng)sender;
 		Cell cell = mng.data;
-		if (_isMap) {
+		if (_type == EditType.MAP) {
 			Zone zone = _map.GetZone (cell.zoneHex);
 			zone.isDirty = true;
-		} else {
+		} else if(_type == EditType.ZONE){
 			_zone.isDirty = true;
+		} else if(_type == EditType.PIECE){
+			_piece.isDirty = true;
 		}
 	}
+
+	private void _openPiece(Piece piece)
+	{
+		for (int i = 0; i < piece.count; i++) {
+			Cell cell = piece.cells [i];
+			_createCell (cell);
+		}
+	}
+
+	private void _openZone(Zone zone)
+	{
+		for (int i = 0; i < zone.count; i++) {
+			Cell cell = zone.cells [i];
+			_createCell (cell);
+		}
+	}
+
+	//===================== piece =====================
+
+	public void CreatePiece(string fileName)
+	{
+		Debug.Log ("CreatePiece");
+
+		_type = EditType.PIECE;
+		ClearGameObject ();
+		_piece = Piece.GetRandomPiece (m_zoneRadius);
+		_openPiece (_piece);
+	}
+
+	public void OpenPiece(string fileName)
+	{
+		string path = Res.GetPiecePath (fileName);
+		Debug.Log ("OpenPiece path " + path);
+
+		_type = EditType.PIECE;
+		ClearGameObject ();
+		_piece = Piece.LoadPieceFromXml (path);
+		if (_piece != null) {
+			_openPiece (_piece);
+		} else {
+			Debug.Log ("OpenPiece fail");
+		}
+	}
+
+	public void SavePiece(string fileName)
+	{
+		string path = Res.GetPiecePath (fileName);
+		Debug.Log ("SavePiece path " + path);
+
+		if (_piece != null) { 
+			Piece.SavePieceToXml (path, _piece);
+			_pieceNames.Insert (0, fileName);
+		} else {
+			Debug.Log ("SavePiece fail");
+		}
+	}
+
+	//===================== zone =====================
 
 	public void CreateZone(string fileName)
 	{
 		Debug.Log ("CreateZone");
 		
-		_isMap = false;
+		_type = EditType.ZONE;
 		ClearGameObject ();
 		_zone = _getRandomZone (true);
 		_openZone (_zone);
@@ -116,7 +199,7 @@ public class EditMapMng : BaseBehaviour {
 		string path = Res.GetZonePath (fileName);
 		Debug.Log ("OpenZone path " + path);
 		
-		_isMap = false;
+		_type = EditType.ZONE;
 		ClearGameObject ();
 		_zone = Zone.LoadZoneFromXml (path);
 		if (_zone != null) {
@@ -143,7 +226,7 @@ public class EditMapMng : BaseBehaviour {
 
 	private void _openMap()
 	{
-		_isMap = true;
+		_type = EditType.MAP;
 		ClearGameObject ();
 		if (!_map.IsEmpty ()) {
 			var zoneDict = _map.GetShowZones ();
@@ -191,6 +274,10 @@ public class EditMapMng : BaseBehaviour {
 				Cell cell = zone.cells [i];
 				cell.groundPfName = _getRandomPf ();
 				cell.state = _random.Next (10) < 8 ? Cell.State.WALK : Cell.State.OBSTACLE;
+				if (cell.state == Cell.State.OBSTACLE) {
+					// 默认的障碍物
+					cell.AddObstacle (Res.ObstaclePath, Vector3.zero);
+				}
 			}
 		}
 		zone.isDirty = true;
@@ -214,14 +301,33 @@ public class EditMapMng : BaseBehaviour {
 		Map.SaveMapToXml (_map, fileName);
 	}
 
+	public void SelectPiece(string fileName)
+	{
+		if (fileName == "none") {
+			_curPiece = null;
+		} else {
+			string path = Res.GetPiecePath (fileName);
+			_curPiece = Piece.LoadPieceFromXml (path);
+		}
+	}
+
+	//===================== update =====================
+
 	protected override void OnUpdate()  
 	{  
-		//鼠标 左键添加 右键移除
-		if (Input.GetMouseButton (0)) {
-			PlaceObject ();
-		}
-		if (Input.GetMouseButton (1)) {
-			RemoveObject ();
+		if (_curPiece != null) {
+			//大物件（多格障碍物） 点击结束添加
+			if (Input.GetMouseButtonUp (0)) {
+				PlaceMultObject ();
+			}
+		} else if(m_placePf != null) {
+			//小物件（单格障碍物） 鼠标 左键添加 右键移除
+			if (Input.GetMouseButton (0)) {
+				PlaceObject ();
+			}
+			if (Input.GetMouseButton (1)) {
+				RemoveObject ();
+			}
 		}
 	}
 
@@ -230,7 +336,51 @@ public class EditMapMng : BaseBehaviour {
 		
 	}
 
-	//设置障碍物
+	public void PlaceMultObject()
+	{
+		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+		RaycastHit hit;
+
+		int layerMask = 1 << 9;
+		if (Physics.Raycast (ray, out hit, Mathf.Infinity, layerMask)) {
+			GameObject hitGo = hit.transform.gameObject;
+			CellMng curMng = hitGo.GetComponent<CellMng>();
+			Cell curCell = curMng.data;
+
+			// 需要的格子都是空的才能插入
+			if (curCell.IsWalkable ()) {
+				bool isEmpty = true;
+				for (int i = 1; i < piece.count; i++) {
+					Cell cell = _curPiece.cells [i];
+					GameObject go;
+					_goDict.TryGetValue (curCell.realHex + cell.hex, out go);
+					if (go) {
+						CellMng mng = go.GetComponent<CellMng>();
+						if (!mng.data.IsWalkable ()) {
+							isEmpty = false;
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+
+				if (isEmpty) {
+					// 满足条件就替换刷新数据
+					for (int i = 0; i < piece.count; i++) {
+						Cell cell = _curPiece.cells [i];
+						GameObject go;
+						_goDict.TryGetValue (curCell.realHex + cell.hex, out go);
+
+						CellMng mng = go.GetComponent<CellMng> ();
+						mng.data = cell;
+					}
+				}
+			}
+		}
+	}
+
+	//设置单格障碍物
 	public void PlaceObject ()
 	{
 		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
@@ -256,6 +406,7 @@ public class EditMapMng : BaseBehaviour {
 		}
 	}
 
+	//移除单格障碍物
 	public void RemoveObject ()
 	{
 		Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
@@ -277,5 +428,17 @@ public class EditMapMng : BaseBehaviour {
 			}
 		}
 	}
+
+#if UNITY_EDITOR
+	void OnValidate()
+	{
+		if (_type == EditType.PIECE) {
+			if (m_zoneRadius != _preZoneRadius) {
+				_preZoneRadius = m_zoneRadius;
+				CreatePiece ("");
+			}
+		}
+	}
+#endif
 
 }

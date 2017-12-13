@@ -16,8 +16,7 @@ public class CellMng : BaseBehaviour {
 	// 障碍物
 	public List<GameObject> m_obstGoList = new List<GameObject>();
 	public GameObject m_multObstGo;
-	public GameObject m_mainGo;
-	public List<GameObject> m_partGoList;
+	public List<GameObject> m_partGoList = new List<GameObject>();
 
 	private GameObject _preGroundPf;
 	private GameObject _preTraggerPf;
@@ -99,7 +98,7 @@ public class CellMng : BaseBehaviour {
 				}
 			}
 
-			if (_data.multObst != "" && _data.partHexs.Count > 0) {
+			if (_data.IsMainObst()) {
 				GameObject prefab = (GameObject)AssetDatabase.LoadAssetAtPath (_data.multObst, typeof(GameObject));
 				GameObject go = Instantiate (prefab);
 				go.transform.parent = gameObject.transform;
@@ -146,7 +145,7 @@ public class CellMng : BaseBehaviour {
 		m_obstGoList.Add (go);
 		Vector3 pos = go.transform.localPosition;
 		string pfName = AssetDatabase.GetAssetPath (go);
-		data.AddObstacle (pfName, pos);
+		_data.AddObstacle (pfName, pos);
 		_onDataChange ();
 	}
 
@@ -156,7 +155,7 @@ public class CellMng : BaseBehaviour {
 			return input == go;
 		});
 		if (index != -1) {
-			data.RemoveObstacle (index);
+			_data.RemoveObstacle (index);
 			_onDataChange ();
 		}
 	}
@@ -170,8 +169,37 @@ public class CellMng : BaseBehaviour {
 	{
 		Vector3 pos = go.transform.localPosition;
 		string pfName = AssetDatabase.GetAssetPath (go);
-		data.UpdateObstacle (pfName, pos);
+		_data.UpdateObstacle (pfName, pos);
 		_onDataChange ();
+	}
+
+	public void ClearObstacle()
+	{
+		if (m_obstGoList.Count > 0) {
+			m_obstGoList.Clear ();
+			_data.ClearObstacle ();
+		}
+	}
+
+	public void ClearMultObstacle()
+	{
+		// 多格障碍
+		if (m_multObstGo != null) {
+			if (m_partGoList.Count > 0) {
+				// 主障碍，附带其他的也要移除
+				for (int i = 0; i < m_partGoList.Count; i++) {
+					GameObject go = m_partGoList [i];
+					CellMng mng = go.GetComponent<CellMng> ();
+					mng.ClearMultObstacle ();
+				}
+				Destroy(m_multObstGo);
+			} else {
+				// 多格障碍的一部分
+				m_multObstGo = null;
+				m_partGoList.Clear ();
+			}
+			_data.clearMultObstacle ();
+		}
 	}
 
 	void Reset()
@@ -189,7 +217,8 @@ public class CellMng : BaseBehaviour {
 				Debug.Log ("m_state " + m_state.ToString ());
 				_data.state = m_state;
 				if (m_state == Cell.State.WALK) {
-					m_obstGoList.Clear ();
+					ClearObstacle ();
+					ClearMultObstacle ();
 				}
 				_refreshState ();
 				_onDataChange ();

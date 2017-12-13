@@ -46,13 +46,13 @@ namespace Stone.Core
 		public List<Vector3> obstPosList = new List<Vector3>();
 
 		// 多格障碍物
-		public string multObst;
+		public string multObst = "";
 		// 多格障碍物位置(主障碍物才有有效值)
-		public Vector3 multObstPos;
+		public Vector3 multObstPos = Vector3.zero;
 		// 该格的障碍物是其他格的一部分，主障碍物的相对位置
-		public Hex mainHex;
+		public Hex mainHex = new Hex();
 		// 该格的障碍物是主障碍物，其他部分在的相对位置
-		public List<Hex> partHexs;
+		public List<Hex> partHexs = new List<Hex>();
 		// ===================== 障碍物 =====================
 
 		private Hex _realHex;	//真实地图的hex
@@ -102,9 +102,14 @@ namespace Stone.Core
 			return this.state == State.OBSTACLE;
 		}
 
+		public bool IsMultObstacle()
+		{
+			return multObst != null;
+		}
+
 		public bool IsMainObst()
 		{
-			return _data.multObst != "" && _data.partHexs.Count > 0
+			return multObst != "" && partHexs.Count > 0;
 		}
 
 		public void AddObstacle(string pfName, Vector3 pos)
@@ -131,6 +136,20 @@ namespace Stone.Core
 			if (index != -1) {
 				obstList [index] = pfName;
 			}
+		}
+
+		public void clearMultObstacle()
+		{
+			multObst = "";
+			multObstPos = Vector3.zero;
+			mainHex = new Hex ();
+			partHexs.Clear ();
+		}
+
+		public void ClearObstacle()
+		{
+			obstList.Clear ();
+			obstPosList.Clear ();
 		}
 
 		private void refreshState()
