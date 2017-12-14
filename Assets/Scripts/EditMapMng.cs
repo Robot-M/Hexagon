@@ -86,6 +86,13 @@ public class EditMapMng : BaseBehaviour {
 		}
 	}
 
+	private GameObject _getGoByHex(Hex hex)
+	{
+		GameObject go = null;
+		_goDict.TryGetValue (hex, out go);
+		return go;
+	}
+
 	//===================== create cells =====================
 
 	private void _createCell(Cell cell)
@@ -107,9 +114,7 @@ public class EditMapMng : BaseBehaviour {
 		mng.data = cell;
 		mng.OnDataChange += _handleCellDataChange;
 
-		if (_type != EditType.MAP) {
-			_goDict.Add (cell.realHex, go);
-		}
+		_goDict.Add (cell.realHex, go);
 	}
 
 	private void _handleCellDataChange (object sender, EventArgs e)
@@ -126,12 +131,32 @@ public class EditMapMng : BaseBehaviour {
 		}
 	}
 
+	private void _refreshMultObst()
+	{
+		foreach (var item in _goDict){
+			CellMng mng = item.Value.GetComponent<CellMng>();
+			Cell cell = mng.data;
+			if (cell.IsMainObst ()) {
+				List<Hex> partHexs = cell.partHexs;
+				for (var i = 0; i < partHexs.Count; i++) {
+					Hex hex = cell.realHex + partHexs [i];
+					GameObject go = _getGoByHex (hex);
+					mng.AddPartGo (go);
+
+					CellMng tarMng = go.GetComponent<CellMng>();
+					tarMng.m_multObstGo = mng.m_multObstGo;
+				}
+			}
+		}
+	}
+
 	private void _openPiece(Piece piece)
 	{
 		for (int i = 0; i < piece.count; i++) {
 			Cell cell = piece.cells [i];
 			_createCell (cell);
 		}
+		_refreshMultObst ();
 	}
 
 	private void _openZone(Zone zone)
@@ -139,6 +164,10 @@ public class EditMapMng : BaseBehaviour {
 		for (int i = 0; i < zone.count; i++) {
 			Cell cell = zone.cells [i];
 			_createCell (cell);
+		}
+
+		if (_type == EditType.ZONE) {
+			_refreshMultObst ();
 		}
 	}
 
@@ -233,6 +262,7 @@ public class EditMapMng : BaseBehaviour {
 			foreach (var zone in zoneDict.Values) {
 				_openZone (zone);
 			}
+			_refreshMultObst ();
 		}
 	}
 
@@ -352,8 +382,7 @@ public class EditMapMng : BaseBehaviour {
 				bool isEmpty = true;
 				for (int i = 1; i < piece.count; i++) {
 					Cell cell = _curPiece.cells [i];
-					GameObject go;
-					_goDict.TryGetValue (curCell.realHex + cell.hex, out go);
+					GameObject go = _getGoByHex(curCell.realHex + cell.hex);
 					if (go) {
 						CellMng mng = go.GetComponent<CellMng>();
 						if (!mng.data.IsWalkable ()) {
@@ -369,8 +398,7 @@ public class EditMapMng : BaseBehaviour {
 					// 满足条件就替换刷新数据
 					for (int i = 0; i < piece.count; i++) {
 						Cell cell = _curPiece.cells [i];
-						GameObject go;
-						_goDict.TryGetValue (curCell.realHex + cell.hex, out go);
+						GameObject go = _getGoByHex(curCell.realHex + cell.hex);
 
 						CellMng mng = go.GetComponent<CellMng> ();
 						mng.data = cell;

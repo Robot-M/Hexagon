@@ -49,8 +49,7 @@ namespace Stone.Core
 		public string multObst = "";
 		// 多格障碍物位置(主障碍物才有有效值)
 		public Vector3 multObstPos = Vector3.zero;
-		// 该格的障碍物是其他格的一部分，主障碍物的相对位置
-		public Hex mainHex = new Hex();
+		// 该格的障碍物是其他格的一部分，主障碍物位置在 realHex-hex 位置
 		// 该格的障碍物是主障碍物，其他部分在的相对位置
 		public List<Hex> partHexs = new List<Hex>();
 		// ===================== 障碍物 =====================
@@ -142,7 +141,6 @@ namespace Stone.Core
 		{
 			multObst = "";
 			multObstPos = Vector3.zero;
-			mainHex = new Hex ();
 			partHexs.Clear ();
 		}
 

@@ -140,6 +140,11 @@ public class CellMng : BaseBehaviour {
 
 #if UNITY_EDITOR
 
+	public void AddPartGo(GameObject go)
+	{
+		m_partGoList.Add (go);
+	}
+
 	public void AddObstacle(GameObject go)
 	{
 		m_obstGoList.Add (go);
