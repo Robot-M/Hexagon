@@ -95,13 +95,13 @@ public class EditMapMng : BaseBehaviour {
 
 	//===================== create cells =====================
 
-	private void _createCell(Cell cell)
+	private void _createCell(Hex centerHex,Cell cell)
 	{
 		Point pt;
 		if (_type == EditType.MAP) {
 			pt = cell.point;
 		} else {
-			cell.realHex = zone.centerHex + cell.hex;
+			cell.realHex = centerHex + cell.hex;
 			pt = Layout.HexToPixel (_layout, cell.realHex);
 		}
 
@@ -154,7 +154,7 @@ public class EditMapMng : BaseBehaviour {
 	{
 		for (int i = 0; i < piece.count; i++) {
 			Cell cell = piece.cells [i];
-			_createCell (cell);
+			_createCell (new Hex(), cell);
 		}
 		_refreshMultObst ();
 	}
@@ -163,7 +163,7 @@ public class EditMapMng : BaseBehaviour {
 	{
 		for (int i = 0; i < zone.count; i++) {
 			Cell cell = zone.cells [i];
-			_createCell (cell);
+			_createCell (zone.centerHex, cell);
 		}
 
 		if (_type == EditType.ZONE) {
@@ -179,7 +179,11 @@ public class EditMapMng : BaseBehaviour {
 
 		_type = EditType.PIECE;
 		ClearGameObject ();
-		_piece = Piece.GetRandomPiece (m_zoneRadius);
+		_piece = Piece.GetRandomPiece (1);
+		for (int i = 0; i < piece.count; i++) {
+			Cell cell = piece.cells [i];
+			cell.groundPfName = _getRandomPf ();
+		}
 		_openPiece (_piece);
 	}
 
